@@ -318,7 +318,8 @@ namespace Erik.Systems.Console
         Manipulation,
         Player,
         Items,
-        Settings
+        Settings,
+        Server
     }
 
     public class ConsoleCommand
