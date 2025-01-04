@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Unity.Burst;
 namespace Erik.Systems.Console
 {
-    public class Console : MonoBehaviour
+    /* Knows issues
+     * If you add a console command, and then destroy/unload the creating object/script, the command will still be in the dict, but will cause errors if called
+     * Could remove them if they return null i guess ¯\_(ツ)_/¯
+    */
+    public sealed class Console : MonoBehaviour
     {
         private bool consoleActive = false;
         public static Dictionary<string, ConsoleCommand> ConComDict = new Dictionary<string, ConsoleCommand>();
-        public static Dictionary<string, string[]> DescriptionDict = new Dictionary<string, string[]>();
+        public static Dictionary<string, List<string>> DescriptionDict = new Dictionary<string, List<string>>();
 
         ConsoleInput inputActions;
 
@@ -22,53 +25,96 @@ namespace Erik.Systems.Console
 
 
         #region Console Basics
-
-        private void Start()
+        
+        private void AddServerCommands()
         {
-            inputActions = new ConsoleInput();
-            inputActions.Console.EnableConsole.Enable();
-            inputActions.Console.EnableConsole.performed += ToggleConsole;
-            inputActions.Console.Direction.performed += DirectionThings;
-            inputActions.Console.Enter.performed += ProcessConsoleEntry;
-            inputActions.Console.ChoosePastThing.performed += ChooseThing;
-            AddCommands(new ConsoleCommand("Test", "Just testing shit", ConsoleCommandType.Basics, false, false,
-                (ha) =>
+
+        }
+
+        private void AddManipulationCommands()
+        {
+
+        }
+
+        private void AddPlayerCommands()
+        {
+
+        }
+
+        private void AddItemsCommands()
+        {
+
+        }
+
+        private void AddSettingsCommands()
+        {
+
+        }
+
+        private void AddBasicCommands()
+        {
+
+            AddCommands(
+                
+            new ConsoleCommand("Test", "Just testing shit", ConsoleCommandType.Basics, false, false, (object[] ha) =>
             {
-                Debug.Log((int)ha[0]);
-                Debug.Log((float)ha[1]);
+                Debug.Log((int)ha[ 0 ]);
+                Debug.Log((float)ha[ 1 ]);
                 Debug.Log("Everything went as hoped");
-            }, typeof(int), typeof(float)),
-            new ConsoleCommand("AddCommands", "Call with code to activate groups of consolecommands", ConsoleCommandType.Basics, false, false, 
-                (ha) =>
+            }, 
+            typeof(int), typeof(float)),
+
+            new ConsoleCommand("AddCommands", "Call with code to activate groups of consolecommands", ConsoleCommandType.Basics, false, false, (object[] ha) =>
             {
-                Log("The code entered was not correct");
-            }, typeof(string)),
-            new ConsoleCommand("RobinHood", "Gives the player 1000 gold", ConsoleCommandType.Basics, false, false, (object[] ha) =>
+                Log("This function has not been implemented yet");
+            }, 
+            typeof(string)),
+
+            new ConsoleCommand("RobinHood", "Gives the player 1000 gold", ConsoleCommandType.Basics, true, false, (object[] ha) =>
             {
-                Log("The player has recived 1000 gold!");
+                Log("The player recived 1000 gold!");
             }),
+
+            new ConsoleCommand("Quit", "Quits the game", ConsoleCommandType.Basics, false, false, (object[] ha) =>
+            {
+                Application.Quit();
+            }),
+
             new ConsoleCommand("Help", "", ConsoleCommandType.Basics, false, false, (object[] ha) =>
             {
-                foreach (string str in DescriptionDict["Basics"])
+                Log("Basic");
+                foreach (string str in DescriptionDict[ "Basics" ])
                 {
-                    Log(str);
+                    Log('\t' + str);
                 }
-            }));
-            DescriptionDict.Add("Basics", new string[] 
+                Log("End of Basic");
+            }),
+
+            new ConsoleCommand("Help", "", ConsoleCommandType.Basics, false, false, (object[] ha) =>
             {
-                "Help",
-                "    Command: \"RobbinHood\", Gives the player 1000 gold" ,
-                "    Command: \"AddCommands\", Variables: [string], Call with code to activate groups of consolecommands",
-                "End of help"
-            });
+                string var = (string)ha[ 0 ];
+                if (DescriptionDict.ContainsKey(var) == false)
+                {
+                    Log($"There are no Help commands on {var}");
+                    return;
+                }
+                Log(var);
+                foreach (string str in DescriptionDict[ var ])
+                {
+                    Log('\t' + str);
+                }
+                Log($"End of {var}");
+            }, 
+            typeof(string)));
         }
 
         private void Awake()
         {
-            Init();
+            EnableConsole();
+            return;
             if (Application.isEditor)
             {
-                // just enable everything i guess
+                EnableConsole();
                 Debug.Log($"Console enabled since we are in the editor!");
                 return;
             }
@@ -76,25 +122,47 @@ namespace Erik.Systems.Console
             for (int i = 1; i < args.Length; i++)
             {
                 if (args[i] == "-Console_Enable")
-                {
-                    Debug.Log($"Console enabled!");
+                { 
+                    EnableConsole();
                 }
                 else
                     Debug.Log($"Console not enabled! \nCode entered: {args[i]}");
             }
         }
+        private void EnableConsole()
+        {
+            DontDestroyOnLoad(this);
+            gameObject.SetActive(true);
+            Init();
+        }
 
         private void Init()
         {
+            inputActions = new ConsoleInput();
+            inputActions.Console.EnableConsole.Enable();
+            inputActions.Console.EnableConsole.performed    += ToggleConsole;
+            inputActions.Console.Direction.performed        += DirectionThings;
+            inputActions.Console.Enter.performed            += ProcessConsoleEntry;
+            inputActions.Console.ChoosePastThing.performed  += ChooseThing;
+
             ConComDict = new Dictionary<string, ConsoleCommand>();
-            DescriptionDict = new Dictionary<string, string[]>();
+            DescriptionDict = new Dictionary<string, List<string>>();
+
+            AddServerCommands();
+            AddManipulationCommands();
+            AddPlayerCommands();
+            AddItemsCommands();
+            AddSettingsCommands();
+            AddBasicCommands();
+
 
             consoleLog = new List<ConsoleLogInfo>()
             {
-                new ConsoleLogInfo ("An unknown error has occured", Color.red ),
-                new ConsoleLogInfo ("Console commands loaded: Basics", Color.white ),
+                new ConsoleLogInfo ("These are test logs, nothing to worry about",  Color.cyan ),
+                new ConsoleLogInfo ("An unknown error has occured",                 Color.red ),    
+                new ConsoleLogInfo ("Console commands loaded: Basics",              Color.white ),
             };
-            pastEntries = new List<string>() { "Help", "poopoo", "haha", "de", "va", "roligt", "piss" };
+            pastEntries = new List<string>() { "Help", "Join", "Host" };
         }
 
         private void OnGUI()
@@ -120,7 +188,7 @@ namespace Erik.Systems.Console
                 for (int i = pastEntries.Count - 1; i >= 0; i--)
                 {
                     GUI.contentColor = i == shownEntry - 1 ? Color.yellow : Color.white;
-                    GUI.TextField(new Rect(0, (Screen.height / 3) + (15 * i), Screen.width, 20), pastEntries[ i ]);
+                    GUI.Label(new Rect(0, (Screen.height / 3) + (15 * i), Screen.width, 20), pastEntries[ i ]);
                 }
             }
             GUI.backgroundColor = Color.clear;
@@ -128,7 +196,7 @@ namespace Erik.Systems.Console
             foreach (ConsoleLogInfo Log in consoleLog)
             {
                 GUI.contentColor = Log.textColor;
-                GUI.TextField(new Rect(0, yPos, Screen.width, 20), Log.text);
+                GUI.Label(new Rect(0, yPos, Screen.width, 20), Log.text);
                 yPos -= 15;
             }
             if (justMarried)
@@ -140,7 +208,7 @@ namespace Erik.Systems.Console
             }
         }
 
-        public class ConsoleLogInfo
+        public sealed class ConsoleLogInfo
         {
             public readonly Color textColor;
             public readonly string text;
@@ -148,11 +216,6 @@ namespace Erik.Systems.Console
             public ConsoleLogInfo(string text, Color textColor)
             {
                 this.textColor = textColor;
-                this.text = text;
-            }
-            public ConsoleLogInfo(string text)
-            {
-                this.textColor = Color.white;
                 this.text = text;
             }
         }
@@ -235,7 +298,7 @@ namespace Erik.Systems.Console
         
         private void ProcessCommand(string[] parts)
         {
-            if (ConComDict.TryGetValue(parts[0], out ConsoleCommand command) == false)
+            if (ConComDict.TryGetValue($"{parts[0]}|{parts.Length - 1}", out ConsoleCommand command) == false)
             {
                 LogWarning("The Command you tried to call, does not exist" );
                 Log("Type \"Help\" if you need it");
@@ -258,7 +321,8 @@ namespace Erik.Systems.Console
 
             command.Execute(converted.ToArray());
         }
-        
+
+
         private bool ConvertText(string[] parts, ConsoleCommand command, out List<object> converted)
         {
             converted = new List<object>();
@@ -278,35 +342,57 @@ namespace Erik.Systems.Console
             return true;
         }
         
+        /// <summary>
+        /// Should be called only in the start function or instantiated later on in the game
+        /// </summary>
+        /// <param name="commands"></param>
         public static void AddCommands(params ConsoleCommand[] commands)
         {
-            foreach (var command in commands)
+            foreach (ConsoleCommand command in commands)
             {
                 AddCommand(command._commandID, command);
             }
         }
-        
+        // Can remove the need to send in the ID seperatly, but will keep for now
         // when typing a command, the command should have all the variabels needed after it when its showing what commands you are close to typing
         // and when you are typing one, the variabels needed should also be shown after, as to guide the users in what is missing, could use one colour for needed, and one for optional
         private static void AddCommand(string ID, ConsoleCommand command)
         {
-            if (ConComDict.ContainsKey(ID))
+            int varCount = command._varTypes.Length;
+            string fullID =  $"{ ID }|{varCount}";
+            // Contains the actuall ID, also using the var count, so you can have multiple types using the same start word
+            // as of right now, i dont know a good way of making more variants viable, so for example if you want 2 commands with both the same start word and same count of variables.
+            // could make it so that it checks the variables, however this could be problematic as there are alot of different variables that could be read the same way
+            // i could make it so that it only accepts certain types, so you can only use float, and not ulong, short, or int
+            // TODO: look into this later IF NECCESSARY!
+            Debug.Log("Added " + fullID);
+            if (ConComDict.ContainsKey(fullID)) 
             {
                 Debug.LogWarning("The Command you tried to add, allready exists" );
                 return;
             }
-            ConComDict.Add(ID, command);
-            // Add the description and in what category it belonges to
-        }
-        
-        public string[] Help()
-        {
-            foreach (var item in ConComDict)
+
+            ConComDict.Add(fullID, command);
+
+            string commandType = command._commandType.ToString();
+
+            string finalDescription = $"Command: {ID}, ";
+            for (int i = 0; i < varCount; i++)
             {
-                ConsoleCommand com = item.Value;
-                // try to make a help page where you can get a name of all the 
+                if (i == 0)
+                    finalDescription += '[';
+                finalDescription += command._varTypes[i].Name;
+                if (i + 1 == varCount)
+                    finalDescription += ']';
+                finalDescription += ", ";
             }
-            return new string[0];
+            finalDescription += command._commandDescription;
+
+            // Adds the description and in what category it belonges to
+            if (DescriptionDict.ContainsKey(commandType) == false)
+                DescriptionDict.Add(commandType, new List<string>() { finalDescription });
+            else
+                DescriptionDict[ commandType ].Add(finalDescription);
         }
         
         #endregion
@@ -322,7 +408,7 @@ namespace Erik.Systems.Console
         Server
     }
 
-    public class ConsoleCommand
+    public sealed class ConsoleCommand
     {
         public readonly string _commandID;
         public readonly string _commandDescription;
@@ -332,7 +418,7 @@ namespace Erik.Systems.Console
         private readonly Action<object[]> _action;
         public readonly bool isActive;
         /// <summary>
-        /// For clarity's sake use a "Log" function to tell what has happend
+        /// For clarity's sake use a "Log/LogError" function to tell the user if it worked/didn't work respectivly
         /// </summary>
         /// <param name="commandID">The name of the command, also what is writen at the start, is to be unique</param>
         /// <param name="commandDescription">A short, yet thorough explanation, shown in the help menu</param>
@@ -341,7 +427,8 @@ namespace Erik.Systems.Console
         /// as you would need to know what you are supposed to kill</param>
         /// <param name="varTypes">The variables <paramref name="usePlayerRef"/> and <paramref name="useTarget"/> are not to be added here.
         /// However, take them into account as they will populate the first 1-2 slots respectively </param>
-        /// <param name="action"></param>
+        /// <param name="action">The object[] contains all variables that you asked for, in the order you asked for them, and also converted correctly, so just convert them to what you need and go ham 
+        /// EXAMPLE: (int)obj[0] OR obj[0] as int</param>
         public ConsoleCommand(
             string commandID, string commandDescription, ConsoleCommandType commandType,
             bool usePlayerRef, bool useTarget, 
