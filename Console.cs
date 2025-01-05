@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 namespace Erik.Systems.Console
 {
     /* Knows issues
-     * If you add a console command, and then destroy/unload the creating object/script, the command will still be in the dict, but will cause errors if called
+     * If you add a console command, and then destroy/unload the object/script that made it, the command will still be callable, but will cause errors if called
      * Could remove them if they return null i guess ¯\_(ツ)_/¯
     */
     public sealed class Console : MonoBehaviour
@@ -23,96 +23,12 @@ namespace Erik.Systems.Console
         string field;
         bool justMarried;
 
-
         #region Console Basics
-        
-        private void AddServerCommands()
-        {
-
-        }
-
-        private void AddManipulationCommands()
-        {
-
-        }
-
-        private void AddPlayerCommands()
-        {
-
-        }
-
-        private void AddItemsCommands()
-        {
-
-        }
-
-        private void AddSettingsCommands()
-        {
-
-        }
-
-        private void AddBasicCommands()
-        {
-
-            AddCommands(
-                
-            new ConsoleCommand("Test", "Just testing shit", ConsoleCommandType.Basics, false, false, (object[] ha) =>
-            {
-                Debug.Log((int)ha[ 0 ]);
-                Debug.Log((float)ha[ 1 ]);
-                Debug.Log("Everything went as hoped");
-            }, 
-            typeof(int), typeof(float)),
-
-            new ConsoleCommand("AddCommands", "Call with code to activate groups of consolecommands", ConsoleCommandType.Basics, false, false, (object[] ha) =>
-            {
-                Log("This function has not been implemented yet");
-            }, 
-            typeof(string)),
-
-            new ConsoleCommand("RobinHood", "Gives the player 1000 gold", ConsoleCommandType.Basics, true, false, (object[] ha) =>
-            {
-                Log("The player recived 1000 gold!");
-            }),
-
-            new ConsoleCommand("Quit", "Quits the game", ConsoleCommandType.Basics, false, false, (object[] ha) =>
-            {
-                Application.Quit();
-            }),
-
-            new ConsoleCommand("Help", "", ConsoleCommandType.Basics, false, false, (object[] ha) =>
-            {
-                Log("Basic");
-                foreach (string str in DescriptionDict[ "Basics" ])
-                {
-                    Log('\t' + str);
-                }
-                Log("End of Basic");
-            }),
-
-            new ConsoleCommand("Help", "", ConsoleCommandType.Basics, false, false, (object[] ha) =>
-            {
-                string var = (string)ha[ 0 ];
-                if (DescriptionDict.ContainsKey(var) == false)
-                {
-                    Log($"There are no Help commands on {var}");
-                    return;
-                }
-                Log(var);
-                foreach (string str in DescriptionDict[ var ])
-                {
-                    Log('\t' + str);
-                }
-                Log($"End of {var}");
-            }, 
-            typeof(string)));
-        }
 
         private void Awake()
         {
             EnableConsole();
-            return;
-            if (Application.isEditor)
+            /*if (Application.isEditor)
             {
                 EnableConsole();
                 Debug.Log($"Console enabled since we are in the editor!");
@@ -127,7 +43,7 @@ namespace Erik.Systems.Console
                 }
                 else
                     Debug.Log($"Console not enabled! \nCode entered: {args[i]}");
-            }
+            }*/
         }
         private void EnableConsole()
         {
@@ -158,11 +74,10 @@ namespace Erik.Systems.Console
 
             consoleLog = new List<ConsoleLogInfo>()
             {
-                new ConsoleLogInfo ("These are test logs, nothing to worry about",  Color.cyan ),
-                new ConsoleLogInfo ("An unknown error has occured",                 Color.red ),    
-                new ConsoleLogInfo ("Console commands loaded: Basics",              Color.white ),
+                new ConsoleLogInfo ("Console enabled!",                 Color.white ),
+                new ConsoleLogInfo ("Server status: Not started",       Color.white ),
             };
-            pastEntries = new List<string>() { "Help", "Join", "Host" };
+            pastEntries = new List<string>() { "Host", "Host 2", "Help" };
         }
 
         private void OnGUI()
@@ -277,8 +192,7 @@ namespace Erik.Systems.Console
 
         #endregion
 
-
-        #region Console commands
+        #region Process commands
 
         private void ProcessConsoleEntry(InputAction.CallbackContext context)
         {
@@ -370,6 +284,7 @@ namespace Erik.Systems.Console
             {
                 Debug.LogWarning("The Command you tried to add, allready exists" );
                 return;
+                
             }
 
             ConComDict.Add(fullID, command);
@@ -394,9 +309,92 @@ namespace Erik.Systems.Console
             else
                 DescriptionDict[ commandType ].Add(finalDescription);
         }
-        
+
         #endregion
 
+        #region Commands
+        private void AddServerCommands()
+        {
+
+        }
+
+        private void AddManipulationCommands()
+        {
+
+        }
+
+        private void AddPlayerCommands()
+        {
+
+        }
+
+        private void AddItemsCommands()
+        {
+
+        }
+
+        private void AddSettingsCommands()
+        {
+
+        }
+
+        private void AddBasicCommands()
+        {
+
+            AddCommands(
+
+            new ConsoleCommand("Test", "Just testing shit", ConsoleCommandType.Basics, (object[] ha) =>
+            {
+                Debug.Log((int)ha[ 0 ]);
+                Debug.Log((float)ha[ 1 ]);
+                Debug.Log("Everything went as hoped");
+            },
+            typeof(int), typeof(float)),
+
+            new ConsoleCommand("AddCommands", "Call with code to activate groups of consolecommands", ConsoleCommandType.Basics, (object[] ha) =>
+            {
+                Log("This function has not been implemented yet");
+            },
+            typeof(string)),
+
+            new ConsoleCommand("RobinHood", "Gives the player 1000 gold", ConsoleCommandType.Basics, true, false, (object[] ha) =>
+            {
+                Log("The player recived 1000 gold!");
+            }),
+
+            new ConsoleCommand("Quit", "Quits the game", ConsoleCommandType.Basics, (object[] ha) =>
+            {
+                Application.Quit();
+            }),
+
+            new ConsoleCommand("Help", "", ConsoleCommandType.Basics, (object[] ha) =>
+            {
+                Log("Basic");
+                foreach (string str in DescriptionDict[ "Basics" ])
+                {
+                    Log('\t' + str);
+                }
+                Log("End of Basic");
+            }),
+
+            new ConsoleCommand("Help", "", ConsoleCommandType.Basics, (object[] ha) =>
+            {
+                string var = (string)ha[ 0 ];
+                if (DescriptionDict.ContainsKey(var) == false)
+                {
+                    Log($"There are no Help commands on {var}");
+                    return;
+                }
+                Log(var);
+                foreach (string str in DescriptionDict[ var ])
+                {
+                    Log('\t' + str);
+                }
+                Log($"End of {var}");
+            },
+            typeof(string)));
+        }
+        #endregion 
     }
     public enum ConsoleCommandType
     {
@@ -425,9 +423,9 @@ namespace Erik.Systems.Console
         /// <param name="usePlayerRef">If the command should have the player as a variable</param>
         /// <param name="useTarget">If the character / item that is currently highlighted should be given as a variable, E.G kill, 
         /// as you would need to know what you are supposed to kill</param>
+        /// <param name="action">The object[] contains all variables that you asked for, in the order you asked for them, and also converted correctly, so just convert them to what you need and go ham 
         /// <param name="varTypes">The variables <paramref name="usePlayerRef"/> and <paramref name="useTarget"/> are not to be added here.
         /// However, take them into account as they will populate the first 1-2 slots respectively </param>
-        /// <param name="action">The object[] contains all variables that you asked for, in the order you asked for them, and also converted correctly, so just convert them to what you need and go ham 
         /// EXAMPLE: (int)obj[0] OR obj[0] as int</param>
         public ConsoleCommand(
             string commandID, string commandDescription, ConsoleCommandType commandType,
@@ -439,6 +437,26 @@ namespace Erik.Systems.Console
             _commandID = commandID;
             _usePlayerRef = usePlayerRef;
             _useTarget = useTarget;
+            _varTypes = varTypes;
+            _action = action;
+        }
+        /// <summary>
+        /// For clarity's sake use a "Log/LogError" function to tell the user if it worked/didn't work respectivly
+        /// </summary>
+        /// <param name="commandID">The name of the command, also what is writen at the start, is to be unique</param>
+        /// <param name="commandDescription">A short, yet thorough explanation, shown in the help menu</param>
+        /// <param name="action">The object[] contains all variables that you asked for, in the order you asked for them, and also converted correctly, so just convert them to what you need and go ham 
+        /// <param name="varTypes">Add the amount and type of variables that you want, using Types </param>
+        /// EXAMPLE: (int)obj[0] OR obj[0] as int</param>
+        public ConsoleCommand(
+            string commandID, string commandDescription, ConsoleCommandType commandType,
+            Action<object[]> action, params Type[] varTypes)
+        {
+            _commandDescription = commandDescription;
+            _commandType = commandType;
+            _commandID = commandID;
+            _usePlayerRef = false;
+            _useTarget = false;
             _varTypes = varTypes;
             _action = action;
         }
