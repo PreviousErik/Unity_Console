@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 namespace Erik.Systems.Console
 {
@@ -8,7 +9,7 @@ namespace Erik.Systems.Console
      * If you add a console command, and then destroy/unload the object/script that made it, the command will still be callable, but will cause errors if called
      * Could remove them if they return null i guess ¯\_(ツ)_/¯
     */
-    public sealed class Console : MonoBehaviour
+    public abstract class HZR_Console : MonoBehaviour
     {
         private bool consoleActive = false;
         public static Dictionary<string, ConsoleCommand> ConComDict = new Dictionary<string, ConsoleCommand>();
@@ -23,10 +24,15 @@ namespace Erik.Systems.Console
         string field;
         bool justMarried;
 
+        bool CloseConsoleOnSend;
+
+        GameObject clickedObject;
+
         #region Console Basics
 
         private void Awake()
         {
+            Debug.Log("Awake call on console");
             EnableConsole();
             /*if (Application.isEditor)
             {
@@ -52,7 +58,7 @@ namespace Erik.Systems.Console
             Init();
         }
 
-        private void Init()
+        protected virtual void Init()
         {
             inputActions = new ConsoleInput();
             inputActions.Console.EnableConsole.Enable();
@@ -77,12 +83,16 @@ namespace Erik.Systems.Console
                 new ConsoleLogInfo ("Console enabled!",                 Color.white ),
                 new ConsoleLogInfo ("Server status: Not started",       Color.white ),
             };
-            pastEntries = new List<string>() { "Host", "Host 2", "Help" };
+            pastEntries = new List<string>() { "Join 76561198161985973", "Host", "Help", "C_Settings" };
         }
+
+        protected abstract object GetPlayerReference();
 
         private void OnGUI()
         {
             if (consoleActive == false) return;
+
+            HandleGettingTargetReference();
 
             GUI.Box(new Rect(0, 0, Screen.width, Screen.height / 3), "");
             GUI.Box(new Rect(0, (Screen.height / 3) - 20, Screen.width, 20), "");
@@ -123,6 +133,27 @@ namespace Erik.Systems.Console
             }
         }
 
+        private void HandleGettingTargetReference()
+        {
+            if (clickedObject != null)
+            {
+                OutlineApplicator.HighlightObject(clickedObject);
+            }
+            if (Input.GetMouseButtonDown(0) == false)
+                return; // Not Clicking
+            if (EventSystem.current != null &&
+                EventSystem.current.IsPointerOverGameObject() == true)
+                return; // pointer over UI
+
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+
+            if (Physics.Raycast(ray, out hit))
+            {
+                clickedObject = hit.collider.gameObject; 
+            }
+        }
+
         public sealed class ConsoleLogInfo
         {
             public readonly Color textColor;
@@ -157,6 +188,9 @@ namespace Erik.Systems.Console
                 inputActions.Console.ChoosePastThing.Enable();
                 shownEntry = -1;
                 field = string.Empty;
+
+                Cursor.lockState = CursorLockMode.Confined;
+                Cursor.visible = true;
             }
             else
             {
@@ -164,6 +198,9 @@ namespace Erik.Systems.Console
                 inputActions.Console.Direction.Disable();
                 inputActions.Console.Enter.Disable();
                 inputActions.Console.ChoosePastThing.Disable();
+
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
             }
         }
         
@@ -198,8 +235,10 @@ namespace Erik.Systems.Console
         {
             if (shownEntry > 0)
                 ChooseThing(new InputAction.CallbackContext());
+
             if (string.IsNullOrEmpty(field) == true)
                 return;
+
             pastEntries.Insert(0, field);
             if (pastEntries.Count > 5)
                 pastEntries.RemoveAt(pastEntries.Count - 1);
@@ -241,6 +280,8 @@ namespace Erik.Systems.Console
         {
             converted = new List<object>();
             // make sure to check and add the targets (chosen and player)
+            if (command._usePlayerRef == true) converted.Add(GetPlayerReference()); 
+            // TODO: Add a function to click and highlight anything in the scene and use as a reference
             for (int i = 0; i < parts.Length; i++)
             {
                 try
@@ -335,7 +376,10 @@ namespace Erik.Systems.Console
 
         private void AddSettingsCommands()
         {
+            AddCommands(new ConsoleCommand("C_Settings", "Change the settings on the console", ConsoleCommandType.C_Settings, (object[] ha) =>
+            {
 
+            }, typeof(string), typeof(string)));
         }
 
         private void AddBasicCommands()
@@ -403,6 +447,7 @@ namespace Erik.Systems.Console
         Player,
         Items,
         Settings,
+        C_Settings,
         Server
     }
 
