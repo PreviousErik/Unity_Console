@@ -11,7 +11,20 @@ namespace Erik.Systems.Console
     */
     public abstract class HZR_Console : MonoBehaviour
     {
-        private bool consoleActive = false;
+        private bool ConsoleActive
+        {
+            get => consoleActive;
+            set
+            {
+                if (value == consoleActive)
+                    return;
+
+                ConsoleToggleUpdate?.Invoke(value);
+                consoleActive = value;
+            }
+        }
+        private event Action<bool> ConsoleToggleUpdate;
+        private bool consoleActive;
         public static Dictionary<string, ConsoleCommand> ConComDict = new Dictionary<string, ConsoleCommand>();
         public static Dictionary<string, List<string>> DescriptionDict = new Dictionary<string, List<string>>();
 
@@ -20,11 +33,11 @@ namespace Erik.Systems.Console
         private static List<string> pastEntries;
         private static List<ConsoleLogInfo> consoleLog;
 
+        private readonly HZR_Settings settings;
+
         int shownEntry = 0;
         string field;
         bool justMarried;
-
-        bool CloseConsoleOnSend;
 
         GameObject clickedObject;
 
@@ -51,6 +64,7 @@ namespace Erik.Systems.Console
                     Debug.Log($"Console not enabled! \nCode entered: {args[i]}");
             }*/
         }
+
         private void EnableConsole()
         {
             DontDestroyOnLoad(this);
@@ -179,30 +193,40 @@ namespace Erik.Systems.Console
         
         private void ToggleConsole(InputAction.CallbackContext context)
         {
-            consoleActive = !consoleActive;
-            if (consoleActive == true)
+            if (settings.ConsoleOpen.Toggle() == true)
             {
-                Debug.Log($"The console has been enabled!");
-                inputActions.Console.Direction.Enable();
-                inputActions.Console.Enter.Enable();
-                inputActions.Console.ChoosePastThing.Enable();
-                shownEntry = -1;
-                field = string.Empty;
-
-                Cursor.lockState = CursorLockMode.Confined;
-                Cursor.visible = true;
+                TurnOnConsole();
             }
             else
             {
-                Debug.Log($"The console has been disabled!");
-                inputActions.Console.Direction.Disable();
-                inputActions.Console.Enter.Disable();
-                inputActions.Console.ChoosePastThing.Disable();
-
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
+                TurnOffConsole();
             }
         }
+
+        private void TurnOnConsole()
+        {
+            Debug.Log($"The console has been enabled!");
+            inputActions.Console.Direction.Enable();
+            inputActions.Console.Enter.Enable();
+            inputActions.Console.ChoosePastThing.Enable();
+            shownEntry = -1;
+            field = string.Empty;
+
+            Cursor.lockState = CursorLockMode.Confined;
+            Cursor.visible = true;
+        }
+
+        private void TurnOffConsole()
+        {
+            Debug.Log($"The console has been disabled!");
+            inputActions.Console.Direction.Disable();
+            inputActions.Console.Enter.Disable();
+            inputActions.Console.ChoosePastThing.Disable();
+
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+
         
         private void DirectionThings(InputAction.CallbackContext context)
         {
@@ -210,7 +234,6 @@ namespace Erik.Systems.Console
         }
 
         #endregion
-
 
         #region Log functions
 
@@ -233,8 +256,12 @@ namespace Erik.Systems.Console
 
         private void ProcessConsoleEntry(InputAction.CallbackContext context)
         {
-            if (shownEntry > 0)
+            if (shownEntry > 0) // If something was chosen from the previous dropdown
+            {
                 ChooseThing(new InputAction.CallbackContext());
+                if (settings.InstantUsePreviousInput == false)
+                    return;
+            }
 
             if (string.IsNullOrEmpty(field) == true)
                 return;
@@ -246,6 +273,9 @@ namespace Erik.Systems.Console
             ProcessCommand(field.Split(' '));
 
             field = "";
+
+            if (settings.CloseConsoleOnSend)
+                TurnOffConsole();
 
         }
         
