@@ -11,20 +11,22 @@ namespace Erik.Systems.Console
     */
     public abstract class HZR_Console : MonoBehaviour
     {
-        private bool ConsoleActive
+        private static HZR_Console instance;
+
+        private bool consoleActive;
+        public bool ConsoleActive
         {
             get => consoleActive;
             set
             {
-                if (value == consoleActive)
+                if ( value == consoleActive )
                     return;
 
                 ConsoleToggleUpdate?.Invoke(value);
                 consoleActive = value;
             }
         }
-        private event Action<bool> ConsoleToggleUpdate;
-        private bool consoleActive;
+
         public static Dictionary<string, ConsoleCommand> ConComDict = new Dictionary<string, ConsoleCommand>();
         public static Dictionary<string, List<string>> DescriptionDict = new Dictionary<string, List<string>>();
 
@@ -41,7 +43,32 @@ namespace Erik.Systems.Console
 
         GameObject clickedObject;
 
+        #region
+
+        private event Action<bool> ConsoleToggleUpdate;
+
+        /// <summary>
+        /// Subscribe to get the updates on if the console is being open or not
+        /// </summary>
+        /// <param name="_func"></param>
+        public static void SubscribeToTurnOn(Action<bool> _func)
+        {
+            instance.ConsoleToggleUpdate += _func;
+            _func.Invoke(instance.consoleActive); // send the update to keep them in the loop if its already open FEX
+        }
+        public static void UnsubscribeToTurnOn(Action<bool> _func) => instance.ConsoleToggleUpdate -= _func; 
+
+        #endregion
+
         #region Console Basics
+
+        protected HZR_Console()
+        {
+            // has to be set in the constructor as its read only.
+            // Safer this way :D
+            settings = new HZR_Settings();
+            instance = this;
+        }
 
         private void Awake()
         {
@@ -149,10 +176,6 @@ namespace Erik.Systems.Console
 
         private void HandleGettingTargetReference()
         {
-            if (clickedObject != null)
-            {
-                OutlineApplicator.HighlightObject(clickedObject);
-            }
             if (Input.GetMouseButtonDown(0) == false)
                 return; // Not Clicking
             if (EventSystem.current != null &&
@@ -164,7 +187,8 @@ namespace Erik.Systems.Console
 
             if (Physics.Raycast(ray, out hit))
             {
-                clickedObject = hit.collider.gameObject; 
+                clickedObject = hit.collider.gameObject;
+                Log($"Clicked on {clickedObject.name}", Color.green);
             }
         }
 
@@ -209,11 +233,13 @@ namespace Erik.Systems.Console
             inputActions.Console.Direction.Enable();
             inputActions.Console.Enter.Enable();
             inputActions.Console.ChoosePastThing.Enable();
-            shownEntry = -1;
+            shownEntry = 0;
             field = string.Empty;
 
             Cursor.lockState = CursorLockMode.Confined;
             Cursor.visible = true;
+
+            ConsoleActive = true;
         }
 
         private void TurnOffConsole()
@@ -225,6 +251,8 @@ namespace Erik.Systems.Console
 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+
+            ConsoleActive = false;
         }
 
         
