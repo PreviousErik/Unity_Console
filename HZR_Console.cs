@@ -287,7 +287,7 @@ namespace Erik.Systems.Console
             if (shownEntry > 0) // If something was chosen from the previous dropdown
             {
                 ChooseThing(new InputAction.CallbackContext());
-                if (settings.InstantUsePreviousInput == false)
+                if (ConsoleSettings.instance.InstantUsePreviousInput == false)
                     return;
             }
 
@@ -302,7 +302,7 @@ namespace Erik.Systems.Console
 
             field = "";
 
-            if (settings.CloseConsoleOnSend)
+            if (ConsoleSettings.instance.CloseConsoleOnSend)
                 TurnOffConsole();
 
         }

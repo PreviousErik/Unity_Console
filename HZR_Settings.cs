@@ -7,8 +7,6 @@ public class HZR_Settings
     {
         // set default settings
     }
-    public bool CloseConsoleOnSend;
-    public bool InstantUsePreviousInput;
     public void SubscribeToUpdate()
     {
 
