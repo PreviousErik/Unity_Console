@@ -27,10 +27,10 @@ namespace Erik.Systems.Console
             }
         }
 
-        public static Dictionary<string, ConsoleCommand> ConComDict = new Dictionary<string, ConsoleCommand>();
-        public static Dictionary<string, List<string>> DescriptionDict = new Dictionary<string, List<string>>();
+        public static Dictionary<string, ConsoleCommand> ConComDict;
+        public static Dictionary<string, List<string>> DescriptionDict;
 
-        ConsoleInput inputActions;
+        ConsoleControlls inputActions;
 
         private static List<string> pastEntries;
         private static List<ConsoleLogInfo> consoleLog;
@@ -101,12 +101,13 @@ namespace Erik.Systems.Console
 
         protected virtual void Init()
         {
-            inputActions = new ConsoleInput();
-            inputActions.Console.EnableConsole.Enable();
-            inputActions.Console.EnableConsole.performed    += ToggleConsole;
-            inputActions.Console.Direction.performed        += DirectionThings;
-            inputActions.Console.Enter.performed            += ProcessConsoleEntry;
-            inputActions.Console.ChoosePastThing.performed  += ChooseThing;
+            inputActions = new ConsoleControlls();
+            inputActions.Console.Enable();
+            inputActions.Console.OpenConsole.started            += ToggleConsole;
+            inputActions.Console.ChoosePreviousInput.started    += DirectionThings;
+            inputActions.Console.Enter.started                  += ProcessConsoleEntry;
+            inputActions.Console.Mouse.started                  += HandleGettingTargetReference;
+
 
             ConComDict = new Dictionary<string, ConsoleCommand>();
             DescriptionDict = new Dictionary<string, List<string>>();
@@ -132,8 +133,6 @@ namespace Erik.Systems.Console
         private void OnGUI()
         {
             if (consoleActive == false) return;
-
-            HandleGettingTargetReference();
 
             GUI.Box(new Rect(0, 0, Screen.width, Screen.height / 3), "");
             GUI.Box(new Rect(0, (Screen.height / 3) - 20, Screen.width, 20), "");
@@ -174,10 +173,8 @@ namespace Erik.Systems.Console
             }
         }
 
-        private void HandleGettingTargetReference()
+        private void HandleGettingTargetReference(InputAction.CallbackContext context)
         {
-            if (Input.GetMouseButtonDown(0) == false)
-                return; // Not Clicking
             if (EventSystem.current != null &&
                 EventSystem.current.IsPointerOverGameObject() == true)
                 return; // pointer over UI
@@ -230,9 +227,8 @@ namespace Erik.Systems.Console
         private void TurnOnConsole()
         {
             Debug.Log($"The console has been enabled!");
-            inputActions.Console.Direction.Enable();
+            inputActions.Console.ChoosePreviousInput.Enable();
             inputActions.Console.Enter.Enable();
-            inputActions.Console.ChoosePastThing.Enable();
             shownEntry = 0;
             field = string.Empty;
 
@@ -245,9 +241,8 @@ namespace Erik.Systems.Console
         private void TurnOffConsole()
         {
             Debug.Log($"The console has been disabled!");
-            inputActions.Console.Direction.Disable();
+            inputActions.Console.ChoosePreviousInput.Disable();
             inputActions.Console.Enter.Disable();
-            inputActions.Console.ChoosePastThing.Disable();
 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
@@ -255,7 +250,6 @@ namespace Erik.Systems.Console
             ConsoleActive = false;
         }
 
-        
         private void DirectionThings(InputAction.CallbackContext context)
         {
             shownEntry = Mathf.Clamp(shownEntry - (int)context.ReadValue<float>(), 0, pastEntries.Count);
@@ -332,7 +326,6 @@ namespace Erik.Systems.Console
 
             command.Execute(converted.ToArray());
         }
-
 
         private bool ConvertText(string[] parts, ConsoleCommand command, out List<object> converted)
         {
