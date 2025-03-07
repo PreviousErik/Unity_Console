@@ -33,9 +33,7 @@ namespace Erik.Systems.Console
         ConsoleControlls inputActions;
 
         private static List<string> pastEntries;
-        private static List<ConsoleLogInfo> consoleLog;
-
-        private readonly HZR_Settings settings;
+        private static List<ConsoleEntry> consoleLog;
 
         int shownEntry = 0;
         string field;
@@ -54,7 +52,7 @@ namespace Erik.Systems.Console
         public static void SubscribeToTurnOn(Action<bool> _func)
         {
             instance.ConsoleToggleUpdate += _func;
-            _func.Invoke(instance.consoleActive); // send the update to keep them in the loop if its already open FEX
+            _func.Invoke(instance.consoleActive); // send the update to keep them in the loop if its already open
         }
         public static void UnsubscribeToTurnOn(Action<bool> _func) => instance.ConsoleToggleUpdate -= _func; 
 
@@ -66,7 +64,6 @@ namespace Erik.Systems.Console
         {
             // has to be set in the constructor as its read only.
             // Safer this way :D
-            settings = new HZR_Settings();
             instance = this;
         }
 
@@ -120,10 +117,10 @@ namespace Erik.Systems.Console
             AddBasicCommands();
 
 
-            consoleLog = new List<ConsoleLogInfo>()
+            consoleLog = new List<ConsoleEntry>()
             {
-                new ConsoleLogInfo ("Console enabled!",                 Color.white ),
-                new ConsoleLogInfo ("Server status: Not started",       Color.white ),
+                new ConsoleEntry ("Console enabled!",                 Color.white ),
+                new ConsoleEntry ("Server status: Not started",       Color.white ),
             };
             pastEntries = new List<string>() { "Join 76561198161985973", "Host", "Help", "C_Settings" };
         }
@@ -158,7 +155,7 @@ namespace Erik.Systems.Console
             }
             GUI.backgroundColor = Color.clear;
             int yPos = (Screen.height / 3) - 40;
-            foreach (ConsoleLogInfo Log in consoleLog)
+            foreach (ConsoleEntry Log in consoleLog)
             {
                 GUI.contentColor = Log.textColor;
                 GUI.Label(new Rect(0, yPos, Screen.width, 20), Log.text);
@@ -180,21 +177,20 @@ namespace Erik.Systems.Console
                 return; // pointer over UI
 
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
 
-            if (Physics.Raycast(ray, out hit))
+            if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 clickedObject = hit.collider.gameObject;
                 Log($"Clicked on {clickedObject.name}", Color.green);
             }
         }
 
-        public sealed class ConsoleLogInfo
+        public sealed class ConsoleEntry
         {
             public readonly Color textColor;
             public readonly string text;
 
-            public ConsoleLogInfo(string text, Color textColor)
+            public ConsoleEntry(string text, Color textColor)
             {
                 this.textColor = textColor;
                 this.text = text;
@@ -214,7 +210,8 @@ namespace Erik.Systems.Console
         
         private void ToggleConsole(InputAction.CallbackContext context)
         {
-            if (settings.ConsoleOpen.Toggle() == true)
+            ConsoleActive = !ConsoleActive;
+            if (ConsoleActive == true)
             {
                 TurnOnConsole();
             }
@@ -234,8 +231,6 @@ namespace Erik.Systems.Console
 
             Cursor.lockState = CursorLockMode.Confined;
             Cursor.visible = true;
-
-            ConsoleActive = true;
         }
 
         private void TurnOffConsole()
@@ -246,8 +241,6 @@ namespace Erik.Systems.Console
 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
-
-            ConsoleActive = false;
         }
 
         private void DirectionThings(InputAction.CallbackContext context)
@@ -257,7 +250,7 @@ namespace Erik.Systems.Console
 
         #endregion
 
-        #region Log functions
+        #region Logging functionality
 
         public static void LogError(string message) => Log(message, Color.red);
         
@@ -267,21 +260,21 @@ namespace Erik.Systems.Console
 
         public static void Log(string message, Color messageColor)
         {
-            consoleLog.Insert(0, new ConsoleLogInfo(message, messageColor));
+            consoleLog.Insert(0, new ConsoleEntry(message, messageColor));
             if (consoleLog.Count > 20)
                 consoleLog.RemoveAt(consoleLog.Count - 1);
         }
 
         #endregion
 
-        #region Process commands
+        #region Command processing
 
         private void ProcessConsoleEntry(InputAction.CallbackContext context)
         {
             if (shownEntry > 0) // If something was chosen from the previous dropdown
             {
                 ChooseThing(new InputAction.CallbackContext());
-                if (ConsoleSettings.instance.InstantUsePreviousInput == false)
+                if (HZR_Settings.instance.InstantUsePreviousInput == false)
                     return;
             }
 
@@ -296,7 +289,7 @@ namespace Erik.Systems.Console
 
             field = "";
 
-            if (ConsoleSettings.instance.CloseConsoleOnSend)
+            if (HZR_Settings.instance.CloseConsoleOnSend)
                 TurnOffConsole();
 
         }
