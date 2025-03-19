@@ -68,7 +68,7 @@ public partial class @ConsoleControlls: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""603e1467-2820-4d7f-99c4-116bb5d3ce87"",
-                    ""path"": ""<Keyboard>/quote"",
+                    ""path"": ""<Keyboard>/#(')"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";Keyboard"",
@@ -79,7 +79,7 @@ public partial class @ConsoleControlls: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""9a96a667-b1ee-4349-b4b2-4229008ed07f"",
-                    ""path"": ""<Keyboard>/numpadMultiply"",
+                    ""path"": ""<Keyboard>/#(*)"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";Keyboard"",

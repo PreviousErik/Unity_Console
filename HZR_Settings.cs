@@ -51,15 +51,16 @@ public class HZR_Settings : ScriptableSingleton<HZR_Settings>
         }
     }
 }
-public class SceneSelectionSettingsProvider : SettingsProvider
+public class ConsoleSettingsProvider : SettingsProvider
 {
-    public SceneSelectionSettingsProvider(string path, SettingsScope scopes, IEnumerable<string> keywords = null) : 
+    public ConsoleSettingsProvider(string path, SettingsScope scopes, IEnumerable<string> keywords = null) : 
         base(path, scopes, keywords)
     {
     }
 
     bool folded;
     float space;
+    int Indentation = 250;
 
 
     public override void OnGUI(string searchContext)
@@ -67,23 +68,25 @@ public class SceneSelectionSettingsProvider : SettingsProvider
         base.OnGUI(searchContext);
 
         GUILayout.Space(20f);
-        int Indentation = 250;
-        folded = EditorGUILayout.Foldout(folded, "Settings");
-        if (folded) space += Time.deltaTime * 100;
+        //folded = EditorGUILayout.Foldout(folded, "Settings");
+        //if (folded) space += Time.deltaTime * 100;
 
+        EditorGUILayout.LabelField("Console Settings");
+        EditorGUI.indentLevel++;
         CloseConsole(searchContext);
         InstaUseDrop(searchContext);
+        EditorGUI.indentLevel--;
 
     }
     private bool CheckContext(string searchContext, string[] contexts)
     {
 
-        if (string.IsNullOrEmpty(searchContext) == false) // If there is nothing searched, then it should not check
+        if (string.IsNullOrEmpty(searchContext)) // If there is nothing searched, then it should not check
             return true;
 
         foreach (string context in contexts)
         {
-            if (searchContext.Contains(context))
+            if ( context.Contains(searchContext) )
                 return true;
         }
         return false;
@@ -101,7 +104,7 @@ public class SceneSelectionSettingsProvider : SettingsProvider
             return;
 
         bool value = HZR_Settings.instance.CloseConsoleOnSend;
-        value.GUIToggleBox("Close console on send");
+        value = EditorGUILayout.Toggle("Close console on send", value);
         HZR_Settings.instance.CloseConsoleOnSend = value;
     }
     private void InstaUseDrop(string searchContext)
@@ -124,6 +127,6 @@ public class SceneSelectionSettingsProvider : SettingsProvider
     [SettingsProvider]
     public static SettingsProvider CreateSettingsProvider()
     {
-        return new SceneSelectionSettingsProvider("Custom Tools/Console Settings", SettingsScope.Project);
+        return new ConsoleSettingsProvider("Custom Tools/Console Settings", SettingsScope.Project);
     }
 }

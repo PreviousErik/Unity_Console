@@ -22,8 +22,8 @@ namespace Erik.Systems.Console
                 if ( value == consoleActive )
                     return;
 
-                ConsoleToggleUpdate?.Invoke(value);
                 consoleActive = value;
+                ConsoleToggleUpdate?.Invoke(value);
             }
         }
 
@@ -41,7 +41,7 @@ namespace Erik.Systems.Console
 
         GameObject clickedObject;
 
-        #region
+        #region Subscription
 
         private event Action<bool> ConsoleToggleUpdate;
 
@@ -105,7 +105,6 @@ namespace Erik.Systems.Console
             inputActions.Console.Enter.started                  += ProcessConsoleEntry;
             inputActions.Console.Mouse.started                  += HandleGettingTargetReference;
 
-
             ConComDict = new Dictionary<string, ConsoleCommand>();
             DescriptionDict = new Dictionary<string, List<string>>();
 
@@ -116,11 +115,10 @@ namespace Erik.Systems.Console
             AddSettingsCommands();
             AddBasicCommands();
 
-
             consoleLog = new List<ConsoleEntry>()
             {
-                new ConsoleEntry ("Console enabled!",                 Color.white ),
-                new ConsoleEntry ("Server status: Not started",       Color.white ),
+                new ConsoleEntry ("Console enabled!",                 Color.green ),
+                new ConsoleEntry ("Server status: Not started",       Color.yellow ),
             };
             pastEntries = new List<string>() { "Join 76561198161985973", "Host", "Help", "C_Settings" };
         }
@@ -208,17 +206,15 @@ namespace Erik.Systems.Console
             }
         }
         
-        private void ToggleConsole(InputAction.CallbackContext context)
+        private void ToggleConsole(InputAction.CallbackContext context) => ToggleConsole();
+
+        private void ToggleConsole()
         {
             ConsoleActive = !ConsoleActive;
             if (ConsoleActive == true)
-            {
                 TurnOnConsole();
-            }
             else
-            {
                 TurnOffConsole();
-            }
         }
 
         private void TurnOnConsole()
@@ -290,13 +286,13 @@ namespace Erik.Systems.Console
             field = "";
 
             if (HZR_Settings.instance.CloseConsoleOnSend)
-                TurnOffConsole();
+                ToggleConsole();
 
         }
         
         private void ProcessCommand(string[] parts)
         {
-            if (ConComDict.TryGetValue($"{parts[0]}|{parts.Length - 1}", out ConsoleCommand command) == false)
+            if (ConComDict.TryGetValue($"{parts[ 0 ]}|{parts.Length - 1}", out ConsoleCommand command) == false)
             {
                 LogWarning("The Command you tried to call, does not exist" );
                 Log("Type \"Help\" if you need it");
@@ -310,7 +306,7 @@ namespace Erik.Systems.Console
                 return;
             }
 
-            if (ConvertText(parts[1..], command, out List<object> converted) == false)
+            if (ConvertText(parts[ 1.. ], command, out List<object> converted) == false)
             {
                 LogWarning("The variables given were not written correctly");
                 Log("Type \"Help\" if you need it");
@@ -324,9 +320,18 @@ namespace Erik.Systems.Console
         {
             converted = new List<object>();
             // make sure to check and add the targets (chosen and player)
-            if (command._usePlayerRef == true) converted.Add(GetPlayerReference()); 
+            if ( command._usePlayerRef == true )
+            {
+                Log("Used the player ref");
+                converted.Add(GetPlayerReference());
+            }
+            if (command._useTarget == true )
+            {
+                Log("Used the target ref");
+                converted.Add(clickedObject);
+            }
             // TODO: Add a function to click and highlight anything in the scene and use as a reference
-            for (int i = 0; i < parts.Length; i++)
+            for ( int i = 0; i < parts.Length; i++)
             {
                 try
                 {
@@ -398,57 +403,44 @@ namespace Erik.Systems.Console
         #endregion
 
         #region Commands
-        private void AddServerCommands()
+        protected virtual void AddServerCommands()
         {
 
         }
 
-        private void AddManipulationCommands()
+        protected virtual void AddManipulationCommands()
         {
 
         }
 
-        private void AddPlayerCommands()
+        protected virtual void AddPlayerCommands()
         {
 
         }
 
-        private void AddItemsCommands()
+        protected virtual void AddItemsCommands()
         {
 
         }
 
-        private void AddSettingsCommands()
+        protected virtual void AddSettingsCommands()
         {
-            AddCommands(new ConsoleCommand("C_Settings", "Change the settings on the console", ConsoleCommandType.C_Settings, (object[] ha) =>
+            AddCommands(
+            new ConsoleCommand("C_Settings", "Change the settings on the console", ConsoleCommandType.C_Settings, (object[] ha) =>
             {
 
             }, typeof(string), typeof(string)));
         }
 
-        private void AddBasicCommands()
+        protected virtual void AddBasicCommands()
         {
-
             AddCommands(
-
-            new ConsoleCommand("Test", "Just testing shit", ConsoleCommandType.Basics, (object[] ha) =>
-            {
-                Debug.Log((int)ha[ 0 ]);
-                Debug.Log((float)ha[ 1 ]);
-                Debug.Log("Everything went as hoped");
-            },
-            typeof(int), typeof(float)),
 
             new ConsoleCommand("AddCommands", "Call with code to activate groups of consolecommands", ConsoleCommandType.Basics, (object[] ha) =>
             {
                 Log("This function has not been implemented yet");
             },
             typeof(string)),
-
-            new ConsoleCommand("RobinHood", "Gives the player 1000 gold", ConsoleCommandType.Basics, true, false, (object[] ha) =>
-            {
-                Log("The player recived 1000 gold!");
-            }),
 
             new ConsoleCommand("Quit", "Quits the game", ConsoleCommandType.Basics, (object[] ha) =>
             {
@@ -480,7 +472,9 @@ namespace Erik.Systems.Console
                 }
                 Log($"End of {var}");
             },
-            typeof(string)));
+            typeof(string))
+            
+            );
         }
         #endregion 
     }
@@ -561,4 +555,8 @@ namespace Erik.Systems.Console
         public readonly Type[] _varTypes;
         public void Execute(object[] v1) => _action.Invoke(v1);
     }
+}
+public interface IHealth
+{
+    public void Kill();
 }
