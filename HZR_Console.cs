@@ -270,8 +270,6 @@ namespace Erik.Systems.Console
             if (shownEntry > 0) // If something was chosen from the previous dropdown
             {
                 ChooseThing(new InputAction.CallbackContext());
-                if (HZR_Settings.instance.InstantUsePreviousInput == false)
-                    return;
             }
 
             if (string.IsNullOrEmpty(field) == true)
@@ -285,8 +283,7 @@ namespace Erik.Systems.Console
 
             field = "";
 
-            if (HZR_Settings.instance.CloseConsoleOnSend)
-                ToggleConsole();
+            ToggleConsole();
 
         }
         
