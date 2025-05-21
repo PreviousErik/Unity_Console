@@ -168,7 +168,7 @@ namespace Erik.Systems.Console
             }
         }
 
-        private void HandleGettingTargetReference(InputAction.CallbackContext context)
+        private void HandleGettingTargetReference(InputAction.CallbackContext _context)
         {
             if (EventSystem.current != null &&
                 EventSystem.current.IsPointerOverGameObject() == true)
@@ -188,14 +188,14 @@ namespace Erik.Systems.Console
             public readonly Color textColor;
             public readonly string text;
 
-            public ConsoleEntry(string text, Color textColor)
+            public ConsoleEntry(string _text, Color _textColor)
             {
-                this.textColor = textColor;
-                this.text = text;
+                this.textColor = _textColor;
+                this.text = _text;
             }
         }
 
-        private void ChooseThing(InputAction.CallbackContext context)
+        private void ChooseThing(InputAction.CallbackContext _context)
         {
             if (shownEntry > 0)
             {
@@ -206,7 +206,7 @@ namespace Erik.Systems.Console
             }
         }
         
-        private void ToggleConsole(InputAction.CallbackContext context) => ToggleConsole();
+        private void ToggleConsole(InputAction.CallbackContext _context) => ToggleConsole();
 
         private void ToggleConsole()
         {
@@ -239,24 +239,24 @@ namespace Erik.Systems.Console
             Cursor.visible = false;
         }
 
-        private void DirectionThings(InputAction.CallbackContext context)
+        private void DirectionThings(InputAction.CallbackContext _context)
         {
-            shownEntry = Mathf.Clamp(shownEntry - (int)context.ReadValue<float>(), 0, pastEntries.Count);
+            shownEntry = Mathf.Clamp(shownEntry - (int)_context.ReadValue<float>(), 0, pastEntries.Count);
         }
 
         #endregion
 
         #region Logging functionality
 
-        public static void LogError(string message) => Log(message, Color.red);
+        public static void LogError(string _message) => Log(_message, Color.red);
         
-        public static void LogWarning(string message) => Log(message, Color.yellow);
+        public static void LogWarning(string _message) => Log(_message, Color.yellow);
         
-        public static void Log(string message) => Log(message, Color.white);
+        public static void Log(string _message) => Log(_message, Color.white);
 
-        public static void Log(string message, Color messageColor)
+        public static void Log(string _message, Color _messageColor)
         {
-            consoleLog.Insert(0, new ConsoleEntry(message, messageColor));
+            consoleLog.Insert(0, new ConsoleEntry(_message, _messageColor));
             if (consoleLog.Count > 20)
                 consoleLog.RemoveAt(consoleLog.Count - 1);
         }
@@ -279,16 +279,46 @@ namespace Erik.Systems.Console
             if (pastEntries.Count > 5)
                 pastEntries.RemoveAt(pastEntries.Count - 1);
 
-            ProcessCommand(field.Split(' '));
+            if (field.StartsWith('/'))
+                ProcessCommand(field[1..].Split(' '));
+            else //Just a text thing, for sending messages to others on the server
+                SendMessageToPlayers(field);
 
             field = "";
 
-            ToggleConsole();
+            //ToggleConsole();
 
         }
-        
+        /// <summary>
+        /// Sends a server wide message to all connected players, does not need to be host to use this.
+        /// </summary>
+        /// <param name="_message"></param>
+        protected abstract void SendMessageToPlayers(string _message);
+        /*
+
+        /// <summary>
+        /// If the game should receive and or send messages to eachother, this can be used to do that
+        /// </summary>
+        /// <param name="_playerID"></param>
+        /// <param name="_message"></param>
+        public abstract void RecieveMessageFromPlayer(uint _playerID, string _message);
+
+
+        /// <summary>
+        /// The function that will handle receiving information from the server
+        /// </summary>
+        /// <param name="_message"></param>
+        public abstract void ReceiveMessageFromServer(string _message);
+
+        /// <summary>
+        /// This function should only be used by the Host, and not by each player, this can be server status, player count, or what ever information that you need to send out about the server
+        /// </summary>
+        /// <param name="_message"></param>
+        public abstract void SendMessageAsServer(string _message);*/
+
         private void ProcessCommand(string[] parts)
         {
+
             if (ConComDict.TryGetValue($"{parts[ 0 ]}|{parts.Length - 1}", out ConsoleCommand command) == false)
             {
                 LogWarning("The Command you tried to call, does not exist" );
@@ -328,6 +358,8 @@ namespace Erik.Systems.Console
                 converted.Add(clickedObject);
             }
             // TODO: Add a function to click and highlight anything in the scene and use as a reference
+            // DONE!
+            // TODO: Make it more obvious what you have selected
             for ( int i = 0; i < parts.Length; i++)
             {
                 try
@@ -444,7 +476,7 @@ namespace Erik.Systems.Console
                 Application.Quit();
             }),
 
-            new ConsoleCommand("Help", "", ConsoleCommandType.Basics, (object[] ha) =>
+            new ConsoleCommand("Help", "Displays the available commands and their description(s)", ConsoleCommandType.Basics, (object[] ha) =>
             {
                 Log("Basic");
                 foreach (string str in DescriptionDict[ "Basics" ])
