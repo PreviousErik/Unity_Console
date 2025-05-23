@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -14,6 +15,7 @@ namespace Erik.Systems.Console
         private static HZR_Console instance;
 
         private bool consoleActive;
+
         public bool ConsoleActive
         {
             get => consoleActive;
@@ -54,6 +56,7 @@ namespace Erik.Systems.Console
             instance.ConsoleToggleUpdate += _func;
             _func.Invoke(instance.consoleActive); // send the update to keep them in the loop if its already open
         }
+
         public static void UnsubscribeToTurnOn(Action<bool> _func) => instance.ConsoleToggleUpdate -= _func; 
 
         #endregion
@@ -120,14 +123,35 @@ namespace Erik.Systems.Console
                 new ConsoleEntry ("Console enabled!",                 Color.green ),
                 new ConsoleEntry ("Server status: Not started",       Color.yellow ),
             };
-            pastEntries = new List<string>() { "Join 76561198161985973", "Host", "Help", "C_Settings" };
+            pastEntries = new List<string>() {
+                "/Join 76561198051458668 : Joins Erik", 
+                "/Join 76561198161985973 : Joins Emil",
+                "/Join 76561198043743484 : Joins Isac",
+                "/FetchPlayerID : Will get your ID and paste it in the unity console (Temporary)",
+                "/Host : Starts a server using your steam account",
+                "/Help : Will show a list of basic commands", 
+                "/C_Settings : Change the settings for the Console" };
         }
 
         protected abstract object GetPlayerReference();
 
         private void OnGUI()
         {
-            if (consoleActive == false) return;
+            int yPos = (Screen.height / 3) - 40;
+            if (consoleActive == false)
+            {
+                foreach (ConsoleEntry Log in consoleLog)
+                {
+                    float diff = Log.timeStamp - Time.time;
+                    if (diff < 0) return;
+                    Color color = Log.textColor;
+                    color.a = diff;
+                    GUI.contentColor = color;
+                    GUI.Label(new Rect(0, yPos, Screen.width, 20), Log.text);
+                    yPos -= 15;
+                }
+                return;
+            }
 
             GUI.Box(new Rect(0, 0, Screen.width, Screen.height / 3), "");
             GUI.Box(new Rect(0, (Screen.height / 3) - 20, Screen.width, 20), "");
@@ -152,7 +176,6 @@ namespace Erik.Systems.Console
                 }
             }
             GUI.backgroundColor = Color.clear;
-            int yPos = (Screen.height / 3) - 40;
             foreach (ConsoleEntry Log in consoleLog)
             {
                 GUI.contentColor = Log.textColor;
@@ -187,11 +210,13 @@ namespace Erik.Systems.Console
         {
             public readonly Color textColor;
             public readonly string text;
+            public readonly float timeStamp;
 
             public ConsoleEntry(string _text, Color _textColor)
             {
                 this.textColor = _textColor;
                 this.text = _text;
+                timeStamp = Time.time + 20;
             }
         }
 
@@ -268,9 +293,7 @@ namespace Erik.Systems.Console
         private void ProcessConsoleEntry(InputAction.CallbackContext context)
         {
             if (shownEntry > 0) // If something was chosen from the previous dropdown
-            {
                 ChooseThing(new InputAction.CallbackContext());
-            }
 
             if (string.IsNullOrEmpty(field) == true)
                 return;
@@ -279,23 +302,25 @@ namespace Erik.Systems.Console
             if (pastEntries.Count > 5)
                 pastEntries.RemoveAt(pastEntries.Count - 1);
 
+
+            if (field.Contains(':'))
+                field = field[..field.IndexOf(':')].TrimEnd(); // Dont ask
+
             if (field.StartsWith('/'))
                 ProcessCommand(field[1..].Split(' '));
             else //Just a text thing, for sending messages to others on the server
-                SendMessageToPlayers(field);
+                SendMessageToPlayers(SanitizeMessage(field));
 
             field = "";
-
-            //ToggleConsole();
-
         }
+
         /// <summary>
-        /// Sends a server wide message to all connected players, does not need to be host to use this.
+        /// Sends a server wide message to all connected players.
         /// </summary>
         /// <param name="_message"></param>
         protected abstract void SendMessageToPlayers(string _message);
-        /*
 
+        /*
         /// <summary>
         /// If the game should receive and or send messages to eachother, this can be used to do that
         /// </summary>
@@ -326,6 +351,7 @@ namespace Erik.Systems.Console
                 return;
             }
 
+            // Does litterally nothing since i added the number of arguments in the command
             if (command._varTypes.Length != parts.Length - 1)
             {
                 LogWarning($"The Command \"{command._commandID}\" requiers " + (command._varTypes.Length < parts.Length ? "fewer" : "more") + " variables");
@@ -341,6 +367,16 @@ namespace Erik.Systems.Console
             }
 
             command.Execute(converted.ToArray());
+        }
+
+        public static string SanitizeMessage(string message)
+        {
+            message = message.Length > 120 ? message.Substring(0, 120) : message;
+            message = Regex.Replace(message,
+                @"[^\p{L}\p{N}\p{Sc}\p{Sm}\p{Mn}\p{Pc}\p{Pd}\p{Zs}.,<>{}|_+=!?;:'""-()]",
+                string.Empty);
+
+            return message;
         }
 
         private bool ConvertText(string[] parts, ConsoleCommand command, out List<object> converted)
