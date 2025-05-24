@@ -40,6 +40,9 @@ namespace Erik.Systems.Console
         int shownEntry = 0;
         string field;
         bool justMarried;
+        bool updateSearchResult;
+        List<string> seartchResults = new List<string>();
+        Trie lookupTable = new Trie();
 
         GameObject clickedObject;
 
@@ -65,8 +68,6 @@ namespace Erik.Systems.Console
 
         protected HZR_Console()
         {
-            // has to be set in the constructor as its read only.
-            // Safer this way :D
             instance = this;
         }
 
@@ -101,6 +102,7 @@ namespace Erik.Systems.Console
 
         protected virtual void Init()
         {
+            lookupTable = new Trie();
             inputActions = new ConsoleControlls();
             inputActions.Console.Enable();
             inputActions.Console.OpenConsole.started            += ToggleConsole;
@@ -124,13 +126,13 @@ namespace Erik.Systems.Console
                 new ConsoleEntry ("Server status: Not started",       Color.yellow ),
             };
             pastEntries = new List<string>() {
+                "/Host : Starts a server using your steam account",
                 "/Join 76561198051458668 : Joins Erik", 
                 "/Join 76561198161985973 : Joins Emil",
                 "/Join 76561198043743484 : Joins Isac",
-                "/FetchPlayerID : Will get your ID and paste it in the unity console (Temporary)",
-                "/Host : Starts a server using your steam account",
+                "/Join 76561198023030982 : Joins Fredrik",
                 "/Help : Will show a list of basic commands", 
-                "/C_Settings : Change the settings for the Console" };
+            };
         }
 
         protected abstract object GetPlayerReference();
@@ -164,6 +166,7 @@ namespace Erik.Systems.Console
             {
                 field = newText;
                 shownEntry = 0;
+                updateSearchResult = true; 
             }
             if (shownEntry > 0)
             {
@@ -189,6 +192,28 @@ namespace Erik.Systems.Console
                 editor.cursorIndex = field.Length;
                 editor.selectIndex = field.Length;
             }
+            if (field.Length > 0 && field.StartsWith('/'))
+            {
+                int yPosition = (Screen.height / 3) - 20;
+                if (updateSearchResult == true)
+                {
+                    updateSearchResult = false;
+                    seartchResults = lookupTable.StartsWith(field[1..]);
+                }
+                if (seartchResults.Count > 0)
+                {
+                    int shownOptions = seartchResults.Count; //How many options should be shown when you search
+                    GUI.backgroundColor = Color.black;
+                    int boxSize = shownOptions * 15;
+                    GUI.Box(new Rect(0, yPosition - boxSize - 5, Screen.width, boxSize + 10), "");
+                    for (int i = 0; i < shownOptions; i++)
+                    {
+                        GUI.contentColor = -i == shownEntry + 1 ? Color.yellow : Color.white;
+                        yPosition -= 15;
+                        GUI.Label(new Rect(0, yPosition - 5, Screen.width, 20), seartchResults[i]);
+                    }
+                }
+            }
         }
 
         private void HandleGettingTargetReference(InputAction.CallbackContext _context)
@@ -206,25 +231,22 @@ namespace Erik.Systems.Console
             }
         }
 
-        public sealed class ConsoleEntry
-        {
-            public readonly Color textColor;
-            public readonly string text;
-            public readonly float timeStamp;
-
-            public ConsoleEntry(string _text, Color _textColor)
-            {
-                this.textColor = _textColor;
-                this.text = _text;
-                timeStamp = Time.time + 20;
-            }
-        }
-
         private void ChooseThing(InputAction.CallbackContext _context)
         {
             if (shownEntry > 0)
             {
-                field = pastEntries[ shownEntry -1 ];
+                field = '/' + pastEntries[ shownEntry -1 ];
+                shownEntry = 0;
+                justMarried = true;
+                return;
+            }
+        }
+        private void ChooseOtherThing(InputAction.CallbackContext _context)
+        {
+            if (shownEntry < 0)
+            {
+                field = '/' + seartchResults[ Mathf.Abs(shownEntry) - 1 ];
+                field = field[..field.IndexOf('[')];
                 shownEntry = 0;
                 justMarried = true;
                 return;
@@ -266,7 +288,7 @@ namespace Erik.Systems.Console
 
         private void DirectionThings(InputAction.CallbackContext _context)
         {
-            shownEntry = Mathf.Clamp(shownEntry - (int)_context.ReadValue<float>(), 0, pastEntries.Count);
+            shownEntry = Mathf.Clamp(shownEntry - (int)_context.ReadValue<float>(), -seartchResults.Count, pastEntries.Count);
         }
 
         #endregion
@@ -294,6 +316,12 @@ namespace Erik.Systems.Console
         {
             if (shownEntry > 0) // If something was chosen from the previous dropdown
                 ChooseThing(new InputAction.CallbackContext());
+            if (shownEntry < 0)
+            {
+                ChooseOtherThing(new InputAction.CallbackContext());
+                return;
+            }
+
 
             if (string.IsNullOrEmpty(field) == true)
                 return;
@@ -447,15 +475,26 @@ namespace Erik.Systems.Console
             string commandType = command._commandType.ToString();
 
             string finalDescription = $"Command: {ID}, ";
+            string lookupText = ID + ' ';
             for (int i = 0; i < varCount; i++)
             {
                 if (i == 0)
+                {
                     finalDescription += '[';
+                    lookupText += '[';
+                }
                 finalDescription += command._varTypes[i].Name;
+                lookupText += command._varTypes[i].Name;
                 if (i + 1 == varCount)
+                {
                     finalDescription += ']';
+                    lookupText += ']';
+                }
                 finalDescription += ", ";
+                lookupText += " ";
             }
+            instance.lookupTable.Insert(lookupText);
+            Debug.Log(lookupText);
             finalDescription += command._commandDescription;
 
             // Adds the description and in what category it belonges to
@@ -552,6 +591,70 @@ namespace Erik.Systems.Console
         Settings,
         C_Settings,
         Server
+    }
+
+    public sealed class ConsoleEntry
+    {
+        public readonly Color textColor;
+        public readonly string text;
+        public readonly float timeStamp;
+
+        public ConsoleEntry(string _text, Color _textColor)
+        {
+            this.textColor = _textColor;
+            this.text = _text;
+            timeStamp = Time.time + 20;
+        }
+    }
+
+    public class TrieNode
+    {
+        public Dictionary<char, TrieNode> children = new Dictionary<char, TrieNode>();
+        public bool IsWord = false;
+    }
+
+    public class Trie
+    {
+        private readonly TrieNode root = new TrieNode();
+        //Insert the initial word, will be the base of everything
+        public void Insert(string word)
+        {
+            TrieNode node = root;
+            //Takes all the 
+            foreach (char c in word)
+            {
+                if (!node.children.ContainsKey(c))
+                    node.children[c] = new TrieNode();
+                node = node.children[c];
+            }
+            node.IsWord = true;
+        }
+
+        public List<string> StartsWith(string prefix)
+        {
+            List<string> results = new List<string>();
+            TrieNode node = root;
+
+            foreach (char c in prefix)
+            {
+                if (!node.children.TryGetValue(c, out node))
+                    return results;
+            }
+
+            DFS(node, prefix, results);
+            return results;
+        }
+
+        private void DFS(TrieNode node, string prefix, List<string> results)
+        {
+            if (node.IsWord)
+                results.Add(prefix);
+
+            foreach (var kvp in node.children)
+            {
+                DFS(kvp.Value, prefix + kvp.Key, results);
+            }
+        }
     }
 
     public sealed class ConsoleCommand
