@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright Erik Torenstam 2022-2025+
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -118,7 +119,7 @@ namespace Erik.Systems.Console
             AddPlayerCommands();
             AddItemsCommands();
             AddSettingsCommands();
-            AddBasicCommands();
+            AddDefaultCommands();
 
             consoleLog = new List<ConsoleEntry>()
             {
@@ -536,7 +537,7 @@ namespace Erik.Systems.Console
             }, typeof(string), typeof(string)));
         }
 
-        protected virtual void AddBasicCommands()
+        protected virtual void AddDefaultCommands()
         {
             AddCommands(
 
@@ -629,7 +630,11 @@ namespace Erik.Systems.Console
             }
             node.IsWord = true;
         }
-
+        public Trie(params string[] words)
+        {
+            foreach (string word in words)
+                Insert(word);
+        }
         public List<string> StartsWith(string prefix)
         {
             List<string> results = new List<string>();
@@ -723,8 +728,4 @@ namespace Erik.Systems.Console
         public readonly Type[] _varTypes;
         public void Execute(object[] v1) => _action.Invoke(v1);
     }
-}
-public interface IHealth
-{
-    public void Kill();
 }
