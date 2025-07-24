@@ -23,6 +23,8 @@ public static partial class GTHF_GUI
     /// <param name="_header"></param>
     public static void GUIToggleBox(this ref bool _val, string _header)
     {
+#if UNITY_EDITOR
         _val = EditorGUILayout.Toggle(_header, _val);
+#endif
     }
 }
