@@ -13,7 +13,6 @@ public class ConsoleSettingsProvider : SettingsProvider
     float space;
     int Indentation = 250;
 
-
     public override void OnGUI(string searchContext)
     {
         base.OnGUI(searchContext);
@@ -27,8 +26,8 @@ public class ConsoleSettingsProvider : SettingsProvider
         CloseConsole(searchContext);
         InstaUseDrop(searchContext);
         EditorGUI.indentLevel--;
-
     }
+
     private bool CheckContext(string searchContext, string[] contexts)
     {
 
@@ -42,6 +41,7 @@ public class ConsoleSettingsProvider : SettingsProvider
         }
         return false;
     }
+
     private void CloseConsole(string searchContext)
     {
         string[] contexts = { 
@@ -58,6 +58,7 @@ public class ConsoleSettingsProvider : SettingsProvider
         value = EditorGUILayout.Toggle("Close console on send", value);
         HZR_Settings.instance.CloseConsoleOnSend = value;
     }
+
     private void InstaUseDrop(string searchContext)
     {
         string[] contexts = { 
@@ -65,7 +66,6 @@ public class ConsoleSettingsProvider : SettingsProvider
             "Dropdown", 
             "Console", 
         };
-
 
         if (CheckContext(searchContext, contexts) == false)
             return;

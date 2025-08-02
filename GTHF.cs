@@ -1,4 +1,3 @@
-using UnityEditor;
 using UnityEngine;
 
 public static partial class GTHF
@@ -13,18 +12,10 @@ public static partial class GTHF
         a = !a;
         return a;
     }
-}
-public static partial class GTHF_GUI
-{
-    /// <summary>
-    /// Creates a toggle box in a GUI environment that will change the value when clicked
-    /// </summary>
-    /// <param name="_val"></param>
-    /// <param name="_header"></param>
-    public static void GUIToggleBox(this ref bool _val, string _header)
+
+    public static Vector3 RotateVectorAlongUp(this Vector3 origin, float angle)
     {
-#if UNITY_EDITOR
-        _val = EditorGUILayout.Toggle(_header, _val);
-#endif
+       return Quaternion.AngleAxis(angle, Vector3.up) * origin;
     }
 }
+
