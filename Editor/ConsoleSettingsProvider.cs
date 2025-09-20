@@ -78,6 +78,6 @@ public class ConsoleSettingsProvider : SettingsProvider
     [SettingsProvider]
     public static SettingsProvider CreateSettingsProvider()
     {
-        return new ConsoleSettingsProvider("Custom Tools/Console Settings", SettingsScope.Project);
+        return new ConsoleSettingsProvider("The god Erik's custom tools/Console Settings", SettingsScope.Project);
     }
 }

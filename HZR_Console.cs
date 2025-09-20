@@ -127,12 +127,12 @@ namespace Erik.Systems.Console
                 new ConsoleEntry ("Server status: Not started",       Color.yellow ),
             };
             pastEntries = new List<string>() {
-                "/Host : Starts a server using your steam account",
-                "/Join 76561198051458668 : Joins Erik", 
-                "/Join 76561198161985973 : Joins Emil",
-                "/Join 76561198043743484 : Joins Isac",
-                "/Join 76561198023030982 : Joins Fredrik",
-                "/Help : Will show a list of basic commands", 
+                "Host : Starts a server using your steam account",
+                "Join 76561198051458668 : Joins Erik", 
+                "Join 76561198161985973 : Joins Emil",
+                "Join 76561198043743484 : Joins Isac",
+                "Join 76561198023030982 : Joins Fredrik",
+                "Help : Will show a list of basic commands", 
             };
         }
 
@@ -304,6 +304,13 @@ namespace Erik.Systems.Console
 
         public static void Log(string _message, Color _messageColor)
         {
+#if UNITY_EDITOR
+            if (Application.isPlaying == false)
+            {
+                Debug.Log(_message);
+                return;
+            }
+#endif
             consoleLog.Insert(0, new ConsoleEntry(_message, _messageColor));
             if (consoleLog.Count > 20)
                 consoleLog.RemoveAt(consoleLog.Count - 1);
