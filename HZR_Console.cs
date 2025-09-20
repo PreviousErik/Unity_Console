@@ -35,8 +35,8 @@ namespace Erik.Systems.Console
 
         ConsoleControlls inputActions;
 
-        private static List<string> pastEntries;
-        private static List<ConsoleEntry> consoleLog;
+        protected static List<string> pastEntries;
+        protected static List<ConsoleEntry> consoleLog;
 
         int shownEntry = 0;
         string field;
@@ -127,12 +127,8 @@ namespace Erik.Systems.Console
                 new ConsoleEntry ("Server status: Not started",       Color.yellow ),
             };
             pastEntries = new List<string>() {
-                "Host : Starts a server using your steam account",
-                "Join 76561198051458668 : Joins Erik", 
-                "Join 76561198161985973 : Joins Emil",
-                "Join 76561198043743484 : Joins Isac",
-                "Join 76561198023030982 : Joins Fredrik",
-                "Help : Will show a list of basic commands", 
+                "/Host : Starts a server using your steam account",
+                "/Help : Will show a list of basic commands", 
             };
         }
 
@@ -236,7 +232,7 @@ namespace Erik.Systems.Console
         {
             if (shownEntry > 0)
             {
-                field = '/' + pastEntries[ shownEntry -1 ];
+                field = pastEntries[ shownEntry -1 ];
                 shownEntry = 0;
                 justMarried = true;
                 return;
