@@ -74,7 +74,7 @@ namespace Erik.Systems.Console
 
         private void Awake()
         {
-            Debug.Log("Awake call on console");
+            //Debug.Log("Awake call on console");
             EnableConsole();
             /*if (Application.isEditor)
             {
@@ -124,6 +124,10 @@ namespace Erik.Systems.Console
             consoleLog = new List<ConsoleEntry>()
             {
                 new ConsoleEntry ("Console enabled!",                 Color.green ),
+                new ConsoleEntry ( 
+                    new ConsoleEntry.EntrySegment(Color.red, "Oh look, i unlocked :"), 
+                    new ConsoleEntry.EntrySegment(Color.red, new Texture2D(1,1)), 
+                    new ConsoleEntry.EntrySegment(Color.white, ": Red science!")),
                 new ConsoleEntry ("Server status: Not started",       Color.yellow ),
             };
             pastEntries = new List<string>() {
@@ -141,13 +145,9 @@ namespace Erik.Systems.Console
             {
                 foreach (ConsoleEntry Log in consoleLog)
                 {
-                    float diff = Log.timeStamp - Time.time;
+                    float diff = Log.timeStamp + 10 - Time.time;
                     if (diff < 0) return;
-                    Color color = Log.textColor;
-                    color.a = diff;
-                    GUI.contentColor = color;
-                    GUI.Label(new Rect(0, yPos, Screen.width, 20), Log.text);
-                    yPos -= 15;
+                    DrawEntry(Log);
                 }
                 return;
             }
@@ -155,16 +155,19 @@ namespace Erik.Systems.Console
             GUI.Box(new Rect(0, 0, Screen.width, Screen.height / 3), "");
             GUI.Box(new Rect(0, (Screen.height / 3) - 20, Screen.width, 20), "");
             GUI.SetNextControlName("TextField");
+            
             // Redo with a dropdown and highlights, and if you continue typing without hitting right or similar,
             // then you just continue as it was, perhaps have a grayed out version behind it
             string newText = GUI.TextField(new Rect(0, (Screen.height / 3) - 20, Screen.width, 20), field);
             GUI.FocusControl("TextField");
+            
             if (newText != field)
             {
                 field = newText;
                 shownEntry = 0;
                 updateSearchResult = true; 
             }
+            
             if (shownEntry > 0)
             {
                 GUI.Box(new Rect(0, Screen.height / 3, Screen.width, (pastEntries.Count * 15) + 5), "");
@@ -175,13 +178,14 @@ namespace Erik.Systems.Console
                     GUI.Label(new Rect(0, (Screen.height / 3) + (15 * i), Screen.width, 20), pastEntries[ i ]);
                 }
             }
+            
             GUI.backgroundColor = Color.clear;
-            foreach (ConsoleEntry Log in consoleLog)
+            
+            foreach (ConsoleEntry log in consoleLog)
             {
-                GUI.contentColor = Log.textColor;
-                GUI.Label(new Rect(0, yPos, Screen.width, 20), Log.text);
-                yPos -= 15;
+                DrawEntry(log);
             }
+            
             if (justMarried)
             {
                 // move the carret to the end of the textfield
@@ -189,6 +193,7 @@ namespace Erik.Systems.Console
                 editor.cursorIndex = field.Length;
                 editor.selectIndex = field.Length;
             }
+           
             if (field.Length > 0 && field.StartsWith('/'))
             {
                 int yPosition = (Screen.height / 3) - 20;
@@ -211,6 +216,28 @@ namespace Erik.Systems.Console
                     }
                 }
             }
+            
+            void DrawEntry(ConsoleEntry log)
+            {
+				int xPos = 0;
+				foreach (var entry in log.Entries)
+				{
+					if (string.IsNullOrEmpty(entry.text))
+					{
+						GUI.Label(new Rect(xPos, yPos, Screen.width, 20), entry.img);
+                        xPos += 16;
+						continue;
+					}
+					GUIStyle style = new GUIStyle();
+                    style.normal.textColor = entry.textColor;
+					// TODO: apply more styles here in the future :D
+					GUIContent content = new GUIContent(entry.text);
+                    
+					GUI.Label(new Rect(xPos, yPos, Screen.width, 20), content, style);
+					xPos += (int)style.CalcSize(content).x;
+				}
+				yPos -= 15;
+			}
         }
 
         private void HandleGettingTargetReference(InputAction.CallbackContext _context)
@@ -307,7 +334,7 @@ namespace Erik.Systems.Console
                 return;
             }
 #endif
-            consoleLog.Insert(0, new ConsoleEntry(_message, _messageColor));
+            consoleLog.Insert(0, new ConsoleEntry(new ConsoleEntry.EntrySegment(_messageColor, _message)));
             if (consoleLog.Count > 20)
                 consoleLog.RemoveAt(consoleLog.Count - 1);
         }
@@ -599,16 +626,40 @@ namespace Erik.Systems.Console
 
     public sealed class ConsoleEntry
     {
-        public readonly Color textColor;
-        public readonly string text;
-        public readonly float timeStamp;
+		public readonly EntrySegment[] Entries = new EntrySegment[0];
 
-        public ConsoleEntry(string _text, Color _textColor)
+		public readonly float timeStamp;
+
+        public ConsoleEntry(params EntrySegment[] entries )
         {
-            this.textColor = _textColor;
-            this.text = _text;
-            timeStamp = Time.time + 20;
-        }
+            timeStamp = Time.time;
+			Entries = entries;
+		}
+
+        public ConsoleEntry( string text,Color textColor)
+        {
+            timeStamp = Time.time;
+            Entries = new EntrySegment[1] { new EntrySegment(textColor, text )};
+
+		}
+		public class EntrySegment
+        {
+			public readonly Color textColor = Color.red;
+            public readonly string text;
+            public readonly Texture2D img;
+
+			public EntrySegment(Color textColor, string text)
+			{
+				this.textColor = textColor;
+				this.text = text;
+			}
+
+			public EntrySegment(Color textColor, Texture2D img)
+			{
+				this.textColor = textColor;
+				this.img = Resources.Load<Texture2D>("RedScience");
+			}
+		}
     }
 
     public class TrieNode
