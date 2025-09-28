@@ -2,11 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.LowLevel;
 namespace Erik.Systems.Console
 {
     /* Knows issues
@@ -16,6 +14,8 @@ namespace Erik.Systems.Console
     public abstract class HZR_Console : MonoBehaviour
     {
         private static HZR_Console instance;
+
+        private bool logDeveloperCommands;
 
         private bool consoleActive;
 
@@ -101,7 +101,10 @@ namespace Erik.Systems.Console
 
             consoleLog = new List<ConsoleEntry>();
             pastEntries = new List<string>();
-        }
+
+			logDeveloperCommands = Application.isEditor || Debug.isDebugBuild;
+
+		}
 
         /// <summary>
         /// Calls this function to get a reference to the player, whatever that might be in your game
@@ -175,7 +178,7 @@ namespace Erik.Systems.Console
             
             foreach (ConsoleEntry log in consoleLog)
             {
-                DrawEntry(log, 1);
+                DrawEntry(log);
             }
             
             if (justMarried)
@@ -209,8 +212,10 @@ namespace Erik.Systems.Console
                 }
             }
             
-            void DrawEntry(ConsoleEntry log, float diff)
+            void DrawEntry(ConsoleEntry log, float diff = 1)
             {
+                if (logDeveloperCommands == false && log.onlyDev)
+                    return;
 				int xPos = 0;
 				foreach (var entry in log.Entries)
 				{
@@ -236,6 +241,8 @@ namespace Erik.Systems.Console
 
         private void HandleGettingTargetReference(InputAction.CallbackContext _context)
         {
+            if (consoleActive == false) 
+                return;
             if (EventSystem.current != null &&
                 EventSystem.current.IsPointerOverGameObject() == true)
                 return; // pointer over UI
@@ -426,7 +433,7 @@ namespace Erik.Systems.Console
 
         public static string SanitizeMessage(string message)
         {
-            message = message.Length > 120 ? message.Substring(0, 120) : message;
+            message = message.Length > 120 ? message[..120] : message;
             message = Regex.Replace(message,
                 @"[^\p{L}\p{N}\p{Sc}\p{Sm}\p{Mn}\p{Pc}\p{Pd}\p{Zs}.,<>{}|_+=!?;:'""-()]",
                 string.Empty);
@@ -628,20 +635,20 @@ namespace Erik.Systems.Console
 
 		public readonly float timeStamp;
 
-        public readonly bool editorOnly;
+        public readonly bool onlyDev;
 
-        public ConsoleEntry(bool editorOnly,  params EntrySegment[] entries )
+        public ConsoleEntry(bool onlyDev, params EntrySegment[] entries )
         {
             timeStamp = Time.time;
 			Entries = entries;
-            this.editorOnly = editorOnly;
+            this.onlyDev = onlyDev; 
 		}
 
-        public ConsoleEntry(bool editorOnly, string text,Color textColor)
+        public ConsoleEntry(bool onlyDev, string text,Color textColor)
         {
             timeStamp = Time.time;
             Entries = new EntrySegment[1] { new EntrySegment(textColor, text )};
-            this.editorOnly = editorOnly;
+            this.onlyDev = onlyDev; 
 		}
 		public class EntrySegment
         {
