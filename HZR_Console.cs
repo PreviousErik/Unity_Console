@@ -2,9 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.LowLevel;
 namespace Erik.Systems.Console
 {
     /* Knows issues
@@ -35,7 +37,14 @@ namespace Erik.Systems.Console
 
         ConsoleControlls inputActions;
 
+        /// <summary>
+        /// PastEntries are what has been entered into the console before, you can also add some default entries here, to make some console commands easely available if they are used a lot.
+        /// This has a max of 10 entries
+        /// </summary>
         protected static List<string> pastEntries;
+        /// <summary>
+        /// The consoleLog contains all the logs that has been called, either from a script or information from the 
+        /// </summary>
         protected static List<ConsoleEntry> consoleLog;
 
         int shownEntry = 0;
@@ -67,40 +76,9 @@ namespace Erik.Systems.Console
 
         #region Console Basics
 
-        protected HZR_Console()
-        {
-            instance = this;
-        }
-
-        private void Awake()
-        {
-            //Debug.Log("Awake call on console");
-            EnableConsole();
-            /*if (Application.isEditor)
-            {
-                EnableConsole();
-                Debug.Log($"Console enabled since we are in the editor!");
-                return;
-            }
-            string[] args = System.Environment.GetCommandLineArgs(); // gets launchCommandLines
-            for (int i = 1; i < args.Length; i++)
-            {
-                if (args[i] == "-Console_Enable")
-                { 
-                    EnableConsole();
-                }
-                else
-                    Debug.Log($"Console not enabled! \nCode entered: {args[i]}");
-            }*/
-        }
-
-        private void EnableConsole()
-        {
-            DontDestroyOnLoad(this);
-            gameObject.SetActive(true);
-            Init();
-        }
-
+        /// <summary>
+        /// This sets up a lot of the console, if you override this, make sure to call "base.Init()"
+        /// </summary>
         protected virtual void Init()
         {
             lookupTable = new Trie();
@@ -121,22 +99,36 @@ namespace Erik.Systems.Console
             AddSettingsCommands();
             AddDefaultCommands();
 
-            consoleLog = new List<ConsoleEntry>()
-            {
-                new ConsoleEntry ("Console enabled!",                 Color.green ),
-                new ConsoleEntry ( 
-                    new ConsoleEntry.EntrySegment(Color.red, "Oh look, i unlocked :"), 
-                    new ConsoleEntry.EntrySegment(Color.red, new Texture2D(1,1)), 
-                    new ConsoleEntry.EntrySegment(Color.white, ": Red science!")),
-                new ConsoleEntry ("Server status: Not started",       Color.yellow ),
-            };
-            pastEntries = new List<string>() {
-                "/Host : Starts a server using your steam account",
-                "/Help : Will show a list of basic commands", 
-            };
+            consoleLog = new List<ConsoleEntry>();
+            pastEntries = new List<string>();
         }
 
+        /// <summary>
+        /// Calls this function to get a reference to the player, whatever that might be in your game
+        /// </summary>
+        /// <returns></returns>
         protected abstract object GetPlayerReference();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        private static void CreateConsoleInstance()
+        {
+            List<Type> children = GTHF.GetTypesImplementingInterface(typeof(HZR_Console));
+
+            if (children.Count == 0)
+            {
+                Debug.LogWarning("No custom class that inherits from HZR_Console exists");
+                return;
+            }
+
+            if (children.Count > 1)
+            {
+                Debug.LogWarning("There are more than one class that inherits from the HZR_Console, only one should exist");
+                return;
+            }
+            GameObject obj = new GameObject();
+            instance = (HZR_Console)obj.AddComponent(children[0]);
+            instance.Init();
+        }
 
         private void OnGUI()
         {
@@ -147,7 +139,7 @@ namespace Erik.Systems.Console
                 {
                     float diff = Log.timeStamp + 10 - Time.time;
                     if (diff < 0) return;
-                    DrawEntry(Log);
+                    DrawEntry(Log, diff);
                 }
                 return;
             }
@@ -183,7 +175,7 @@ namespace Erik.Systems.Console
             
             foreach (ConsoleEntry log in consoleLog)
             {
-                DrawEntry(log);
+                DrawEntry(log, 1);
             }
             
             if (justMarried)
@@ -217,7 +209,7 @@ namespace Erik.Systems.Console
                 }
             }
             
-            void DrawEntry(ConsoleEntry log)
+            void DrawEntry(ConsoleEntry log, float diff)
             {
 				int xPos = 0;
 				foreach (var entry in log.Entries)
@@ -229,7 +221,9 @@ namespace Erik.Systems.Console
 						continue;
 					}
 					GUIStyle style = new GUIStyle();
-                    style.normal.textColor = entry.textColor;
+                    Color temp = entry.textColor;
+                    temp.a = diff;
+					style.normal.textColor = temp;
 					// TODO: apply more styles here in the future :D
 					GUIContent content = new GUIContent(entry.text);
                     
@@ -265,6 +259,7 @@ namespace Erik.Systems.Console
                 return;
             }
         }
+
         private void ChooseOtherThing(InputAction.CallbackContext _context)
         {
             if (shownEntry < 0)
@@ -319,22 +314,22 @@ namespace Erik.Systems.Console
 
         #region Logging functionality
 
-        public static void LogError(string _message) => Log(_message, Color.red);
+        public static void LogError(string _message, bool editorOnly = false) => Log(_message, Color.red, editorOnly);
         
-        public static void LogWarning(string _message) => Log(_message, Color.yellow);
+        public static void LogWarning(string _message, bool editorOnly = false) => Log(_message, Color.yellow, editorOnly);
         
-        public static void Log(string _message) => Log(_message, Color.white);
+        public static void Log(string _message, bool editorOnly = false) => Log(_message, Color.white, editorOnly);
 
-        public static void Log(string _message, Color _messageColor)
+        public static void Log(string _message, Color _messageColor, bool editorOnly = false)
         {
-#if UNITY_EDITOR
-            if (Application.isPlaying == false)
-            {
-                Debug.Log(_message);
-                return;
-            }
-#endif
-            consoleLog.Insert(0, new ConsoleEntry(new ConsoleEntry.EntrySegment(_messageColor, _message)));
+            consoleLog.Insert(0, new ConsoleEntry(editorOnly, new ConsoleEntry.EntrySegment(_messageColor, _message)));
+            if (consoleLog.Count > 20)
+                consoleLog.RemoveAt(consoleLog.Count - 1);
+        }
+
+        public static void Log(bool editorOnly = false, params ConsoleEntry.EntrySegment[] segments)
+        {
+            consoleLog.Insert(0, new ConsoleEntry(editorOnly, segments));
             if (consoleLog.Count > 20)
                 consoleLog.RemoveAt(consoleLog.Count - 1);
         }
@@ -377,7 +372,7 @@ namespace Erik.Systems.Console
         /// Sends a server wide message to all connected players.
         /// </summary>
         /// <param name="_message"></param>
-        protected abstract void SendMessageToPlayers(string _message);
+        protected virtual void SendMessageToPlayers(string _message) { }
 
         /*
         /// <summary>
@@ -410,10 +405,11 @@ namespace Erik.Systems.Console
                 return;
             }
 
-            // Does litterally nothing since i added the number of arguments in the command
-            if (command._varTypes.Length != parts.Length - 1)
+			// Does litterally nothing since i added the number of arguments in the command
+			Type[] varTypes = command._call.GetType().GenericTypeArguments;
+			if (varTypes.Length != parts.Length - 1)
             {
-                LogWarning($"The Command \"{command._commandID}\" requiers " + (command._varTypes.Length < parts.Length ? "fewer" : "more") + " variables");
+                LogWarning($"The Command \"{command._commandID}\" requiers " + (varTypes.Length < parts.Length ? "fewer" : "more") + " variables");
                 Log("Type \"Help\" if you need it");
                 return;
             }
@@ -452,14 +448,15 @@ namespace Erik.Systems.Console
                 Log("Used the target ref");
                 converted.Add(clickedObject);
             }
-            // TODO: Add a function to click and highlight anything in the scene and use as a reference
-            // DONE!
-            // TODO: Make it more obvious what you have selected
-            for ( int i = 0; i < parts.Length; i++)
+			// TODO: Add a function to click and highlight anything in the scene and use as a reference
+			// DONE!
+			// TODO: Make it more obvious what you have selected
+			Type[] varTypes = command._call.GetType().GenericTypeArguments;
+			for ( int i = 0; i < parts.Length; i++)
             {
                 try
                 {
-                    converted.Add(Convert.ChangeType(parts[i], command._varTypes[i]));
+                    converted.Add(Convert.ChangeType(parts[i], varTypes[i]));
                 }
                 catch (Exception e)
                 {
@@ -469,24 +466,25 @@ namespace Erik.Systems.Console
             }
             return true;
         }
-        
+
         /// <summary>
-        /// Should be called only in the start function or instantiated later on in the game
+        /// This function is not to be used, as the Command is not added automatically after creation
         /// </summary>
-        /// <param name="commands"></param>
         public static void AddCommands(params ConsoleCommand[] commands)
         {
             foreach (ConsoleCommand command in commands)
             {
-                AddCommand(command._commandID, command);
+                AddCommand(command);
             }
         }
-        // Can remove the need to send in the ID seperatly, but will keep for now
-        // when typing a command, the command should have all the variabels needed after it when its showing what commands you are close to typing
-        // and when you are typing one, the variabels needed should also be shown after, as to guide the users in what is missing, could use one colour for needed, and one for optional
-        private static void AddCommand(string ID, ConsoleCommand command)
+        /// <summary>
+        /// This function is not to be used, as the Command is not added automatically after creation
+        /// </summary>
+        public static void AddCommand(ConsoleCommand command)
         {
-            int varCount = command._varTypes.Length;
+			string ID = command._commandID;
+            Type[] varTypes = command._call.GetType().GenericTypeArguments;
+			int varCount = varTypes.Length;
             string fullID =  $"{ ID }|{varCount}";
             // Contains the actuall ID, also using the var count, so you can have multiple types using the same start word
             // as of right now, i dont know a good way of making more variants viable, so for example if you want 2 commands with both the same start word and same count of variables.
@@ -514,8 +512,8 @@ namespace Erik.Systems.Console
                     finalDescription += '[';
                     lookupText += '[';
                 }
-                finalDescription += command._varTypes[i].Name;
-                lookupText += command._varTypes[i].Name;
+                finalDescription += varTypes[i].Name;
+                lookupText += varTypes[i].Name;
                 if (i + 1 == varCount)
                 {
                     finalDescription += ']';
@@ -560,16 +558,16 @@ namespace Erik.Systems.Console
 
         protected virtual void AddSettingsCommands()
         {
-            AddCommands(
+            /*AddCommands(
             new ConsoleCommand("C_Settings", "Change the settings on the console", ConsoleCommandType.C_Settings, (object[] ha) =>
             {
 
-            }, typeof(string), typeof(string)));
+            }, typeof(string), typeof(string)));*/
         }
 
         protected virtual void AddDefaultCommands()
         {
-            AddCommands(
+            /*AddCommands(
 
             new ConsoleCommand("AddCommands", "Call with code to activate groups of consolecommands", ConsoleCommandType.Basics, (object[] ha) =>
             {
@@ -609,7 +607,7 @@ namespace Erik.Systems.Console
             },
             typeof(string))
             
-            );
+            );*/
         }
         #endregion 
     }
@@ -630,21 +628,24 @@ namespace Erik.Systems.Console
 
 		public readonly float timeStamp;
 
-        public ConsoleEntry(params EntrySegment[] entries )
+        public readonly bool editorOnly;
+
+        public ConsoleEntry(bool editorOnly,  params EntrySegment[] entries )
         {
             timeStamp = Time.time;
 			Entries = entries;
+            this.editorOnly = editorOnly;
 		}
 
-        public ConsoleEntry( string text,Color textColor)
+        public ConsoleEntry(bool editorOnly, string text,Color textColor)
         {
             timeStamp = Time.time;
             Entries = new EntrySegment[1] { new EntrySegment(textColor, text )};
-
+            this.editorOnly = editorOnly;
 		}
 		public class EntrySegment
         {
-			public readonly Color textColor = Color.red;
+            public readonly Color textColor = Color.white;
             public readonly string text;
             public readonly Texture2D img;
 
@@ -654,10 +655,9 @@ namespace Erik.Systems.Console
 				this.text = text;
 			}
 
-			public EntrySegment(Color textColor, Texture2D img)
+			public EntrySegment(Texture2D img)
 			{
-				this.textColor = textColor;
-				this.img = Resources.Load<Texture2D>("RedScience");
+				this.img = img;
 			}
 		}
     }
@@ -723,53 +723,49 @@ namespace Erik.Systems.Console
 
         public readonly ConsoleCommandType _commandType;
 
-        private readonly Action<object[]> _action;
-        public readonly bool isActive;
-        /// <summary>
-        /// For clarity's sake use a "Log/LogError" function to tell the user if it worked/didn't work respectivly
-        /// </summary>
-        /// <param name="commandID">The name of the command, also what is writen at the start, is to be unique</param>
-        /// <param name="commandDescription">A short, yet thorough explanation, shown in the help menu</param>
-        /// <param name="usePlayerRef">If the command should have the player as a variable</param>
-        /// <param name="useTarget">If the character / item that is currently highlighted should be given as a variable, E.G kill, 
-        /// as you would need to know what you are supposed to kill</param>
-        /// <param name="action">The object[] contains all variables that you asked for, in the order you asked for them, and also converted correctly, so just convert them to what you need and go ham 
-        /// <param name="varTypes">The variables <paramref name="usePlayerRef"/> and <paramref name="useTarget"/> are not to be added here.
-        /// However, take them into account as they will populate the first 1-2 slots respectively </param>
-        /// EXAMPLE: (int)obj[0] OR obj[0] as int</param>
+        public readonly Delegate _call;
+		/// <summary>
+		/// OBS!!! THIS DOES NO LONGER WORK!, switch to using <see cref="ConsoleCommand.CreateCommand"/>
+		/// </summary>
+		[Obsolete()]
         public ConsoleCommand(
             string commandID, string commandDescription, ConsoleCommandType commandType,
-            bool usePlayerRef, bool useTarget, 
+            bool usePlayerRef, bool useTarget,
             Action<object[]> action, params Type[] varTypes)
         {
-            _commandDescription = commandDescription;
-            _commandType = commandType;
-            _commandID = commandID;
-            _usePlayerRef = usePlayerRef;
-            _useTarget = useTarget;
-            _varTypes = varTypes;
-            _action = action;
+        }
+		/// <summary>
+		/// OBS!!! THIS DOES NO LONGER WORK!, switch to using <see cref="ConsoleCommand.CreateCommand"/>
+		/// </summary>
+		[Obsolete()]
+        public ConsoleCommand(
+            string commandID, string commandDescription, ConsoleCommandType commandType,
+            Action<object[]> action, params Type[] varTypes)
+        {
         }
         /// <summary>
         /// For clarity's sake use a "Log/LogError" function to tell the user if it worked/didn't work respectivly
         /// </summary>
         /// <param name="commandID">The name of the command, also what is writen at the start, is to be unique</param>
         /// <param name="commandDescription">A short, yet thorough explanation, shown in the help menu</param>
-        /// <param name="action">The object[] contains all variables that you asked for, in the order you asked for them, and also converted correctly, so just convert them to what you need and go ham 
-        /// <param name="varTypes">Add the amount and type of variables that you want, using Types </param>
-        /// EXAMPLE: (int)obj[0] OR obj[0] as int</param>
-        public ConsoleCommand(
+        private ConsoleCommand(
             string commandID, string commandDescription, ConsoleCommandType commandType,
-            Action<object[]> action, params Type[] varTypes)
+            Delegate call)
         {
             _commandDescription = commandDescription;
             _commandType = commandType;
             _commandID = commandID;
             _usePlayerRef = false;
             _useTarget = false;
-            _varTypes = varTypes;
-            _action = action;
+            _call = call;
         }
+        public static ConsoleCommand CreateCommand(string commandID, string commandDescription, ConsoleCommandType commandType, Action call)
+            => new ConsoleCommand(commandID, commandDescription, commandType, call);
+        public static ConsoleCommand CreateCommand<T>(string commandID, string commandDescription, ConsoleCommandType commandType, Action<T> call)
+            => new ConsoleCommand(commandID, commandDescription, commandType, call);
+        public static ConsoleCommand CreateCommand<T1, T2>(string commandID, string commandDescription, ConsoleCommandType commandType, Action<T1, T2> call)
+            => new ConsoleCommand(commandID, commandDescription, commandType, call);
+
         /// <summary>
         /// If this is checked, then the first variable is a reference to the player
         /// </summary>
@@ -779,7 +775,6 @@ namespace Erik.Systems.Console
         /// If the "<seealso cref="_usePlayerRef"/>" is also checked, it becomes the second variable
         /// </summary>
         public readonly bool _useTarget;
-        public readonly Type[] _varTypes;
-        public void Execute(object[] v1) => _action.Invoke(v1);
+        public void Execute(object[] v1) => _call.DynamicInvoke(v1);
     }
 }

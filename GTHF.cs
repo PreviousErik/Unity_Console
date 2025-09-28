@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 public static partial class GTHF
@@ -17,5 +21,27 @@ public static partial class GTHF
     {
        return Quaternion.AngleAxis(angle, Vector3.up) * origin;
     }
+	/// <summary>
+	/// Gets all the classes that inherits from the type given, excluding abstract and it self, should be avoided during live gameplay
+	/// </summary>
+	/// <param name="TYPE"></param>
+	/// <returns></returns>
+	public static List<Type> GetTypesImplementingInterface(Type TYPE)
+	{
+		return AppDomain.CurrentDomain.GetAssemblies()
+			.SelectMany(assembly =>
+			{
+				Type[] types;
+
+				try
+				{ types = assembly.GetTypes(); }
+				catch (ReflectionTypeLoadException e)
+				{ types = e.Types.Where(t => t != null).ToArray(); }
+
+				return types;
+			})
+			.Where(type => TYPE.IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
+			.ToList();
+	}
 }
 
