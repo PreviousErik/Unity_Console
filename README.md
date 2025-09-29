@@ -33,7 +33,7 @@ AddCommands(command);
 ```
 
 The commands supports basic variables, such as int, float, string, and similar.
-How these are added and utilized is simply adding them in the lambda, and the console will figure the rest out, exmaple:
+How these are added and utilized is simply adding them in the lambda, and the console will figure the rest out, example:
 
 ```
 (string name, int age) =>
@@ -49,7 +49,7 @@ There are 2 features that helps you get references to things.
 
 ### Player reference
 
-You can get a reference to the player by overriding the GetPlayerReference() in your console extention, and you can use this as a references in your *console-commands*.
+You can get a reference to the player by overriding the GetPlayerReference() in your console extension, and you can use this as a references in your *console-commands*.
 
 > [!NOTE]
 > As of right now, this is not implemented fully, and will not work.
@@ -65,7 +65,7 @@ This console can be used as a chat over servers, simply override the "SendMessag
 This function has safeguards in place to remove bloat, to make it harder to send an extensive amount of text.
 
 > [!WARNING]
-> This is not a garantee that this will work for everything, you have to make sure that this is safe for your game.
+> This is not a guarantee that this will work for everything, you have to make sure that this is safe for your game.
 
 > [!NOTE]
 > There is no profanity filter.
@@ -81,4 +81,4 @@ This will send a bool containing the state of the console.
 
 # Final throughts
 
-The console will give feedback if a command was not set up properly or was not called using working informaiton or structure. So just make stuff!
+The console will give feedback if a command was not set up properly or was not called using working informatino or structure. So just make stuff!
