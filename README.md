@@ -3,7 +3,7 @@
 Copyright Erik Torenstam 2024-2025
 
 This console is for free use.
-You are allowed, and in-fact have, to create your own extention class of the HZR_Console, to add your own functionality, or overwrite what already exist.
+You are allowed, and in-fact have, to create your own extension class of the HZR_Console, to add your own functionality, or overwrite what already exist.
 
 The main focus of this is simple use, but extensive coverage with high malleability.
 
@@ -17,7 +17,7 @@ public class MyConsole : HZR_Console
 
 }
 ```
-From there you are set, as there is nothing more you need to do to get it working, however, this is only the shell, you need to add your own commands, exmaple: 
+From there you are set, as there is nothing more you need to do to get it working, however, this is only the shell, you need to add your own commands, example: 
 
 ```
 ConsoleCommand command = ConsoleCommand.CreateCommand(
@@ -32,7 +32,7 @@ ConsoleCommand command = ConsoleCommand.CreateCommand(
 AddCommands(command);
 ```
 
-The commands supports basic variables, such as int, float, string and similar.
+The commands supports basic variables, such as int, float, string, and similar.
 How these are added and utilized is simply adding them in the lambda, and the console will figure the rest out, exmaple:
 
 ```
@@ -51,7 +51,8 @@ There are 2 features that helps you get references to things.
 
 You can get a reference to the player by overriding the GetPlayerReference() in your console extention, and you can use this as a references in your *console-commands*.
 
-As of right now, this is not implemented fully, and will not work.
+> [!NOTE]
+> As of right now, this is not implemented fully, and will not work.
 
 ### Object reference
 
@@ -63,11 +64,21 @@ This console can be used as a chat over servers, simply override the "SendMessag
 
 This function has safeguards in place to remove bloat, to make it harder to send an extensive amount of text.
 
-*OBS!* This is not a garantee that this will work for everything, you have to make sure that this is safe for your game.
-And there is no profanity filter.
+> [!WARNING]
+> This is not a garantee that this will work for everything, you have to make sure that this is safe for your game.
+
+> [!NOTE]
+> There is no profanity filter.
 
 ## To think about
 
 There are also a function-call that will happen when you open up the console, and that is to help you do things, such as show the mouse to make it clickable.
+You can subscribe to this call by typing:
+```
+MyConsole.SubscribeToTurnOn(MyFunction);
+```
+This will send a bool containing the state of the console.
+
+# Final throughts
 
 The console will give feedback if a command was not set up properly or was not called using working informaiton or structure. So just make stuff!
