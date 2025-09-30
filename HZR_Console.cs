@@ -129,6 +129,7 @@ namespace Erik.Systems.Console
                 return;
             }
             GameObject obj = new GameObject();
+            DontDestroyOnLoad(obj);
             instance = (HZR_Console)obj.AddComponent(children[0]);
             instance.Init();
         }
