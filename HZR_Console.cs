@@ -395,11 +395,11 @@ namespace Erik.Systems.Console
                 pastEntries.RemoveAt(pastEntries.Count - 1);
 
 
-            if (field.Contains(':'))
-                field = field[..field.IndexOf(':')].TrimEnd(); // Dont ask
+            if (field.Contains('|'))
+                field = field[..field.IndexOf('|')].TrimEnd(); // Dont ask
 
             if (field.StartsWith('/'))
-                ProcessCommand(field[1..].Split(' '));
+                ProcessCommand(field[1..].Split(' ', StringSplitOptions.RemoveEmptyEntries));
             else //Just a text thing, for sending messages to others on the server
                 UserMessage(SanitizeMessage(field));
 
