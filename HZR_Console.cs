@@ -253,7 +253,7 @@ namespace Erik.Systems.Console
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 clickedObject = hit.collider.gameObject;
-                Log($"Clicked on {clickedObject.name}", Color.green);
+                EditorLog(new ConsoleEntry.EntrySegment(Color.white, "Clicked on"), new ConsoleEntry.EntrySegment(Color.green, clickedObject.name) );
             }
         }
 
@@ -318,29 +318,59 @@ namespace Erik.Systems.Console
             shownEntry = Mathf.Clamp(shownEntry - (int)_context.ReadValue<float>(), -seartchResults.Count, pastEntries.Count);
         }
 
-        #endregion
+		#endregion
 
-        #region Logging functionality
+		#region Logging functionality
 
-        public static void LogError(string _message, bool editorOnly = false) => Log(_message, Color.red, editorOnly);
-        
-        public static void LogWarning(string _message, bool editorOnly = false) => Log(_message, Color.yellow, editorOnly);
-        
-        public static void Log(string _message, bool editorOnly = false) => Log(_message, Color.white, editorOnly);
+		#region Log
 
-        public static void Log(string _message, Color _messageColor, bool editorOnly = false)
+		public static void LogError(string _message) => Log(_message, Color.red);
+
+        public static void LogWarning(string _message) => Log(_message, Color.yellow);
+
+        public static void Log(string _message) => Log(_message, Color.white);
+
+        public static void Log(string _message, Color _messageColor)
         {
-            consoleLog.Insert(0, new ConsoleEntry(editorOnly, new ConsoleEntry.EntrySegment(_messageColor, _message)));
+            consoleLog.Insert(0, new ConsoleEntry(false, new ConsoleEntry.EntrySegment(_messageColor, _message)));
             if (consoleLog.Count > 20)
                 consoleLog.RemoveAt(consoleLog.Count - 1);
         }
 
-        public static void Log(bool editorOnly = false, params ConsoleEntry.EntrySegment[] segments)
+        public static void Log(params ConsoleEntry.EntrySegment[] segments)
         {
-            consoleLog.Insert(0, new ConsoleEntry(editorOnly, segments));
+            consoleLog.Insert(0, new ConsoleEntry(false, segments));
+            if (consoleLog.Count > 20)
+                consoleLog.RemoveAt(consoleLog.Count - 1);
+
+        }
+
+		#endregion
+
+		#region EditorLog
+
+        public static void EditorLogError(string _message) => EditorLog(_message, Color.red);
+
+        public static void EditorLogWarning(string _message) => EditorLog(_message, Color.yellow);
+
+        public static void EditorLog(string _message) => EditorLog(_message, Color.white);
+
+        public static void EditorLog(string _message, Color _messageColor)
+        {
+            consoleLog.Insert(0, new ConsoleEntry(false, new ConsoleEntry.EntrySegment(Color.green, "-_[EDITOR]_- "), new ConsoleEntry.EntrySegment(_messageColor, _message)));
             if (consoleLog.Count > 20)
                 consoleLog.RemoveAt(consoleLog.Count - 1);
         }
+
+        public static void EditorLog(params ConsoleEntry.EntrySegment[] segments)
+        {
+            List<ConsoleEntry.EntrySegment> withEditor = new List<ConsoleEntry.EntrySegment>(segments);
+            withEditor.Insert(0, new ConsoleEntry.EntrySegment(Color.green, "-_[EDITOR]_- "));
+            consoleLog.Insert(0, new ConsoleEntry(true, withEditor.ToArray()));
+            if (consoleLog.Count > 20)
+                consoleLog.RemoveAt(consoleLog.Count - 1);
+        }
+		#endregion
 
         #endregion
 
@@ -371,37 +401,16 @@ namespace Erik.Systems.Console
             if (field.StartsWith('/'))
                 ProcessCommand(field[1..].Split(' '));
             else //Just a text thing, for sending messages to others on the server
-                SendMessageToPlayers(SanitizeMessage(field));
+                UserMessage(SanitizeMessage(field));
 
             field = "";
         }
 
         /// <summary>
-        /// Sends a server wide message to all connected players.
+        /// This function will be called when the user types anything in the console that is not a command
         /// </summary>
         /// <param name="_message"></param>
-        protected virtual void SendMessageToPlayers(string _message) { }
-
-        /*
-        /// <summary>
-        /// If the game should receive and or send messages to eachother, this can be used to do that
-        /// </summary>
-        /// <param name="_playerID"></param>
-        /// <param name="_message"></param>
-        public abstract void RecieveMessageFromPlayer(uint _playerID, string _message);
-
-
-        /// <summary>
-        /// The function that will handle receiving information from the server
-        /// </summary>
-        /// <param name="_message"></param>
-        public abstract void ReceiveMessageFromServer(string _message);
-
-        /// <summary>
-        /// This function should only be used by the Host, and not by each player, this can be server status, player count, or what ever information that you need to send out about the server
-        /// </summary>
-        /// <param name="_message"></param>
-        public abstract void SendMessageAsServer(string _message);*/
+        protected virtual void UserMessage(string _message) { }
 
         private void ProcessCommand(string[] parts)
         {
@@ -488,7 +497,7 @@ namespace Erik.Systems.Console
         /// <summary>
         /// This function is not to be used, as the Command is not added automatically after creation
         /// </summary>
-        public static void AddCommand(ConsoleCommand command)
+        private static void AddCommand(ConsoleCommand command)
         {
 			string ID = command._commandID;
             Type[] varTypes = command._call.GetType().GenericTypeArguments;
