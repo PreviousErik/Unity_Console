@@ -92,13 +92,6 @@ namespace Erik.Systems.Console
             ConComDict = new Dictionary<string, ConsoleCommand>();
             DescriptionDict = new Dictionary<string, List<string>>();
 
-            AddServerCommands();
-            AddManipulationCommands();
-            AddPlayerCommands();
-            AddItemsCommands();
-            AddSettingsCommands();
-            AddDefaultCommands();
-
             consoleLog = new List<ConsoleEntry>();
             pastEntries = new List<string>();
 
@@ -273,7 +266,8 @@ namespace Erik.Systems.Console
             if (shownEntry < 0)
             {
                 field = '/' + seartchResults[ Mathf.Abs(shownEntry) - 1 ];
-                field = field[..field.IndexOf('[')];
+                if (field.Contains('['))
+                    field = field[..field.IndexOf('[')];
                 shownEntry = 0;
                 justMarried = true;
                 return;
@@ -552,81 +546,6 @@ namespace Erik.Systems.Console
 
         #endregion
 
-        #region Commands
-        protected virtual void AddServerCommands()
-        {
-
-        }
-
-        protected virtual void AddManipulationCommands()
-        {
-
-        }
-
-        protected virtual void AddPlayerCommands()
-        {
-
-        }
-
-        protected virtual void AddItemsCommands()
-        {
-
-        }
-
-        protected virtual void AddSettingsCommands()
-        {
-            /*AddCommands(
-            new ConsoleCommand("C_Settings", "Change the settings on the console", ConsoleCommandType.C_Settings, (object[] ha) =>
-            {
-
-            }, typeof(string), typeof(string)));*/
-        }
-
-        protected virtual void AddDefaultCommands()
-        {
-            /*AddCommands(
-
-            new ConsoleCommand("AddCommands", "Call with code to activate groups of consolecommands", ConsoleCommandType.Basics, (object[] ha) =>
-            {
-                Log("This function has not been implemented yet");
-            },
-            typeof(string)),
-
-            new ConsoleCommand("Quit", "Quits the game", ConsoleCommandType.Basics, (object[] ha) =>
-            {
-                Application.Quit();
-            }),
-
-            new ConsoleCommand("Help", "Displays the available commands and their description(s)", ConsoleCommandType.Basics, (object[] ha) =>
-            {
-                Log("Basic");
-                foreach (string str in DescriptionDict[ "Basics" ])
-                {
-                    Log('\t' + str);
-                }
-                Log("End of Basic");
-            }),
-
-            new ConsoleCommand("Help", "", ConsoleCommandType.Basics, (object[] ha) =>
-            {
-                string var = (string)ha[ 0 ];
-                if (DescriptionDict.ContainsKey(var) == false)
-                {
-                    Log($"There are no Help commands on {var}");
-                    return;
-                }
-                Log(var);
-                foreach (string str in DescriptionDict[ var ])
-                {
-                    Log('\t' + str);
-                }
-                Log($"End of {var}");
-            },
-            typeof(string))
-            
-            );*/
-        }
-        #endregion 
     }
     public enum ConsoleCommandType
     {
