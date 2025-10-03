@@ -36,12 +36,16 @@ namespace Erik.Systems.Console
         public static Dictionary<string, List<string>> DescriptionDict;
 
         ConsoleControlls inputActions;
-
-        /// <summary>
-        /// PastEntries are what has been entered into the console before, you can also add some default entries here, to make some console commands easely available if they are used a lot.
-        /// This has a max of 10 entries
-        /// </summary>
-        protected static List<string> pastEntries;
+		private void OnDestroy()
+		{
+			inputActions.Disable();
+			inputActions.Dispose();
+		}
+		/// <summary>
+		/// PastEntries are what has been entered into the console before, you can also add some default entries here, to make some console commands easely available if they are used a lot.
+		/// This has a max of 10 entries
+		/// </summary>
+		protected static List<string> pastEntries;
         /// <summary>
         /// The consoleLog contains all the logs that has been called, either from a script or information from the 
         /// </summary>
@@ -108,7 +112,7 @@ namespace Erik.Systems.Console
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         private static void CreateConsoleInstance()
         {
-            List<Type> children = GTHF.GetTypesImplementingInterface(typeof(HZR_Console));
+            List<Type> children = GTHF.GetChildClasses(typeof(HZR_Console));
 
             if (children.Count == 0)
             {
@@ -167,8 +171,9 @@ namespace Erik.Systems.Console
                     GUI.Label(new Rect(0, (Screen.height / 3) + (15 * i), Screen.width, 20), pastEntries[ i ]);
                 }
             }
-            
-            GUI.backgroundColor = Color.clear;
+			GUI.contentColor = Color.white;
+
+			GUI.backgroundColor = Color.clear;
             
             foreach (ConsoleEntry log in consoleLog)
             {

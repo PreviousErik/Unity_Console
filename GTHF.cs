@@ -26,7 +26,7 @@ public static partial class GTHF
 	/// </summary>
 	/// <param name="TYPE"></param>
 	/// <returns></returns>
-	public static List<Type> GetTypesImplementingInterface(Type TYPE)
+	public static List<Type> GetChildClasses(Type TYPE)
 	{
 		return AppDomain.CurrentDomain.GetAssemblies()
 			.SelectMany(assembly =>
