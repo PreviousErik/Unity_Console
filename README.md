@@ -11,7 +11,7 @@ The main focus of this is simple use, but extensive coverage with high malleabil
 ## How to use
 
 All you have to do is create your own class that has the HZR_Console that it inherits from, example: 
-```
+```c#
 public class MyConsole : HZR_Console
 {
 
@@ -19,7 +19,7 @@ public class MyConsole : HZR_Console
 ```
 From there you are set, as there is nothing more you need to do to get it working, however, this is only the shell, you need to add your own commands, example: 
 
-```
+```c#
 ConsoleCommand command = ConsoleCommand.CreateCommand(
 	"FirstCommand",
 	"This is my first command",
@@ -32,10 +32,13 @@ ConsoleCommand command = ConsoleCommand.CreateCommand(
 AddCommands(command);
 ```
 
+> [!NOTE]
+> I am working on a way to call functions as well, but this can be worked around by simply calling the function in the lambda expression
+
 The commands supports basic variables, such as int, float, string, and similar.
 How these are added and utilized is simply adding them in the lambda, and the console will figure the rest out, example:
 
-```
+```c#
 (string name, int age) =>
 ```
 
@@ -62,7 +65,7 @@ You can get a reference to any object by clicking on it while the console is ope
 
 This console can be used as a chat over servers, simply override the "SendMessageToPlayers(string _message)" function, and send the string to the server-manager.
 
-This function has safeguards in place to remove bloat, to make it harder to send an extensive amount of text.
+This function has safeguards in place to remove bloat, and will make it harder to send an excessive amount of text.
 
 > [!WARNING]
 > This is not a guarantee that this will work for everything, you have to make sure that this is safe for your game.
@@ -74,11 +77,10 @@ This function has safeguards in place to remove bloat, to make it harder to send
 
 There are also a function-call that will happen when you open up the console, and that is to help you do things, such as show the mouse to make it clickable.
 You can subscribe to this call by typing:
-```
+```c#
 MyConsole.SubscribeToTurnOn(MyFunction);
 ```
 This will send a bool containing the state of the console.
 
-# Final throughts
-
-The console will give feedback if a command was not set up properly or was not called using working informatino or structure. So just make stuff!
+> [!NOTE]
+> The console will give feedback if a command was not set up properly or was not called using working informatino or structure. So just make stuff!
