@@ -7,7 +7,7 @@ You are allowed, and in-fact have, to create your own extension class of the HZR
 
 The main focus of this is simple use, but extensive coverage with high malleability.
 
-
+bajs
 ## How to use
 
 All you have to do is create your own class that has the HZR_Console that it inherits from, example: 
