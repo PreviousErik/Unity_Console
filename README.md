@@ -34,7 +34,11 @@ ConsoleCommand command = ConsoleCommand.CreateCommand(
 AddCommands(command);
 ```
 
-### EditorOnly
+> [!IMPORTANT]
+> You do not need to add the console to anything, it will instantiate one when you start the game.
+> It will not be destroyed when you load a new scene
+
+## EditorOnly
 
 If this is supposed to be used as information for the player, such as how it's used in Factorio, then use the Editor-logs.
 They work the same as the other logs, but will show in the console that they are for developers only, and will not show up outside of the editor/developer builds!
@@ -85,11 +89,11 @@ The console shows what other variables that each command requires.
 There are also a function-call that will happen when you open up the console, and that is to help you do things, such as show the mouse to make it clickable.
 You can subscribe to this call by typing:
 ```c#
-MyConsole.SubscribeToTurnOn(MyFunction);
+MyConsole.SubscribeToToggle(MyFunction);
 ```
 and to unsubscribe
 ```c#
-MyConsole.UnsubscribeToTurnOn(MyFunction);
+MyConsole.UnsubscribeToToggle(MyFunction);
 ```
 This will send a bool containing the state of the console to "MyFunction".
 
