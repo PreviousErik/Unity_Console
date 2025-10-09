@@ -19,6 +19,8 @@ public class MyConsole : HZR_Console
 
 }
 ```
+There are a few functions that you can override, but nothing you have to do!
+
 From there you are set, as there is nothing more you need to do to get it working, however, this is only the shell, you need to add your own commands, example: 
 
 ```c#
@@ -33,6 +35,9 @@ ConsoleCommand command = ConsoleCommand.CreateCommand(
  
 AddCommands(command);
 ```
+
+> [!WARNING]
+> Make sure to add the command, as it is not done automatically
 
 > [!IMPORTANT]
 > You do not need to add the console to anything, it will instantiate one when you start the game.
@@ -59,7 +64,13 @@ To call the other variant that has the name and age, you type "/FirstCommand Eri
 
 ## Object reference
 
-You can get a reference to any object by clicking on it while the console is open, you will get a log in the console that will tell you what you last clicked on, and it will be available to reference in your *console-commands*
+You can get a reference to any object by clicking on it while the console is open, you will get a log in the console that will tell you what you last clicked on, and it will be available to reference in your *console-commands*, example:
+
+```c#
+(GameObject clickedObject, string name, int age) =>
+```
+
+This will only require 2 variabels when called in the console, but will still add the reference to the clicked object.
 
 ### How to use the reference
 
@@ -79,8 +90,12 @@ This function has safeguards in place to remove bloat, and will make it harder t
 
 ## Can not find a good name for this section, so here you go
 
-### What commands exist? / searching
-The console will automatiaclly keep track of and add all entries, and you can easily search through over 1,000 entries lightning-fast.
+### What commands exist?
+The console will automatically add and keep track of all entries.
+
+### How many commands are to many?
+It can easily search through over 1,000 entries lightning-fast.
+If you get to the point that you have so many entries/commands that your game starts to slow down when you seach, you have other issues!
 
 ### What variables do i need?
 The console shows what other variables that each command requires. 
