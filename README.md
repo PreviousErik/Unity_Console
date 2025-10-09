@@ -1,11 +1,13 @@
 # HZR_Console for unity
 
-Copyright Erik Torenstam 2024-2025
+Created by Erik Torenstam ©2024-2025
 
 This console is for free use.
 You are allowed, and in-fact have, to create your own extension class of the HZR_Console, to add your own functionality, or overwrite what already exist.
 
 The main focus of this is simple use, but extensive coverage with high malleability.
+
+This will help you create a workflow that is going to make testing incredibly fast and easy.
 
 
 ## How to use
@@ -32,6 +34,11 @@ ConsoleCommand command = ConsoleCommand.CreateCommand(
 AddCommands(command);
 ```
 
+### EditorOnly
+
+If this is supposed to be used as information for the player, such as how it's used in Factorio, then use the Editor-logs.
+They work the same as the other logs, but will show in the console that they are for developers only, and will not show up outside of the editor/developer builds!
+
 > [!NOTE]
 > I am working on a way to call functions as well, but this can be worked around by simply calling the function in the lambda expression
 
@@ -46,10 +53,13 @@ If you press the "*" key on your keyboard, and the console will open up, and you
 
 To call the other variant that has the name and age, you type "/FirstCommand Erik 27" and the console will convert the text into the variables and then call the function using the entered values.
 
-## Context help
-### Object reference
+## Object reference
 
 You can get a reference to any object by clicking on it while the console is open, you will get a log in the console that will tell you what you last clicked on, and it will be available to reference in your *console-commands*
+
+### How to use the reference
+
+To have a command that will use the clicked on reference, simply add a GameObject as the first variable in your function, and it will be exchanged for a reference to the gameobject that was clicked on last.
 
 ## Chat
 
@@ -63,14 +73,25 @@ This function has safeguards in place to remove bloat, and will make it harder t
 > [!NOTE]
 > There is no profanity filter.
 
-## To think about
+## Can not find a good name for this section, so here you go
 
+### What commands exist? / searching
+The console will automatiaclly keep track of and add all entries, and you can easily search through over 1,000 entries lightning-fast.
+
+### What variables do i need?
+The console shows what other variables that each command requires. 
+
+### Toggling the console 
 There are also a function-call that will happen when you open up the console, and that is to help you do things, such as show the mouse to make it clickable.
 You can subscribe to this call by typing:
 ```c#
 MyConsole.SubscribeToTurnOn(MyFunction);
 ```
-This will send a bool containing the state of the console.
+and to unsubscribe
+```c#
+MyConsole.UnsubscribeToTurnOn(MyFunction);
+```
+This will send a bool containing the state of the console to "MyFunction".
 
 > [!NOTE]
 > The console will give feedback if a command was not set up properly or was not called using working informatino or structure. So just make stuff!
