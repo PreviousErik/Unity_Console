@@ -47,16 +47,6 @@ If you press the "*" key on your keyboard, and the console will open up, and you
 To call the other variant that has the name and age, you type "/FirstCommand Erik 27" and the console will convert the text into the variables and then call the function using the entered values.
 
 ## Context help
-
-There are 2 features that helps you get references to things.
-
-### Player reference
-
-You can get a reference to the player by overriding the GetPlayerReference() in your console extension, and you can use this as a references in your *console-commands*.
-
-> [!NOTE]
-> As of right now, this is not implemented fully, and will not work.
-
 ### Object reference
 
 You can get a reference to any object by clicking on it while the console is open, you will get a log in the console that will tell you what you last clicked on, and it will be available to reference in your *console-commands*
