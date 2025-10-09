@@ -324,10 +324,13 @@ namespace Erik.Systems.Console
 		#region Log
 
 		public static void LogError(string _message) => Log(_message, Color.red);
+		public static void LogError(object _message) => Log(_message.ToString(), Color.red);
 
         public static void LogWarning(string _message) => Log(_message, Color.yellow);
+        public static void LogWarning(object _message) => Log(_message.ToString(), Color.yellow);
 
         public static void Log(string _message) => Log(_message, Color.white);
+        public static void Log(object _message) => Log(_message.ToString(), Color.white);
 
         public static void Log(string _message, Color _messageColor)
         {
@@ -599,6 +602,12 @@ namespace Erik.Systems.Console
 			public EntrySegment(Texture2D img)
 			{
 				this.img = img;
+			}
+
+			public EntrySegment(Color textColor, object thing)
+			{
+				this.textColor = textColor;
+				this.text = thing.ToString();
 			}
 		}
     }
