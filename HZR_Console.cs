@@ -68,13 +68,13 @@ namespace Erik.Systems.Console
         /// Subscribe to get the updates on if the console is being open or not
         /// </summary>
         /// <param name="_func"></param>
-        public static void SubscribeToTurnOn(Action<bool> _func)
+        public static void SubscribeToToggle(Action<bool> _func)
         {
             instance.ConsoleToggleUpdate += _func;
             _func.Invoke(instance.consoleActive); // send the update to keep them in the loop if its already open
         }
 
-        public static void UnsubscribeToTurnOn(Action<bool> _func) => instance.ConsoleToggleUpdate -= _func; 
+        public static void UnsubscribeToToggle(Action<bool> _func) => instance.ConsoleToggleUpdate -= _func; 
 
         #endregion
 
@@ -100,14 +100,9 @@ namespace Erik.Systems.Console
             pastEntries = new List<string>();
 
 			logDeveloperCommands = Application.isEditor || Debug.isDebugBuild;
-
+            //RegisterAttributedMethods();
 		}
 
-        /// <summary>
-        /// Calls this function to get a reference to the player, whatever that might be in your game
-        /// </summary>
-        /// <returns></returns>
-        protected abstract object GetPlayerReference();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         private static void CreateConsoleInstance()
@@ -125,7 +120,7 @@ namespace Erik.Systems.Console
                 Debug.LogWarning("There are more than one class that inherits from the HZR_Console, only one should exist");
                 return;
             }
-            GameObject obj = new GameObject();
+            GameObject obj = new GameObject(children[0].Name);
             DontDestroyOnLoad(obj);
             instance = (HZR_Console)obj.AddComponent(children[0]);
             instance.Init();
@@ -257,26 +252,22 @@ namespace Erik.Systems.Console
 
         private void ChooseThing(InputAction.CallbackContext _context)
         {
-            if (shownEntry > 0)
-            {
-                field = pastEntries[ shownEntry -1 ];
-                shownEntry = 0;
-                justMarried = true;
-                return;
-            }
+            field = pastEntries[ shownEntry -1 ];
+            // Removes the added context before sending it to the console
+            if (field.Contains('|'))
+                field = field[..field.IndexOf('|')];
+			shownEntry = 0;
+            justMarried = true;
         }
 
         private void ChooseOtherThing(InputAction.CallbackContext _context)
         {
-            if (shownEntry < 0)
-            {
-                field = '/' + seartchResults[ Mathf.Abs(shownEntry) - 1 ];
-                if (field.Contains('['))
-                    field = field[..field.IndexOf('[')];
-                shownEntry = 0;
-                justMarried = true;
-                return;
-            }
+            field = seartchResults[ (-shownEntry) - 1 ];
+            // Removes the added context before sending it to the console
+			if (field.Contains('['))
+				field = field[..field.IndexOf('[')];
+            shownEntry = 0;
+            justMarried = true;
         }
         
         private void ToggleConsole(InputAction.CallbackContext _context) => ToggleConsole();
@@ -331,6 +322,7 @@ namespace Erik.Systems.Console
 
         public static void Log(string _message) => Log(_message, Color.white);
         public static void Log(object _message) => Log(_message.ToString(), Color.white);
+        public static void Log(object _message, Color _messageColor) => Log(_message.ToString(), _messageColor);
 
         public static void Log(string _message, Color _messageColor)
         {
@@ -352,10 +344,13 @@ namespace Erik.Systems.Console
 		#region EditorLog
 
         public static void EditorLogError(string _message) => EditorLog(_message, Color.red);
+        public static void EditorLogError(object _message) => EditorLog(_message.ToString(), Color.red);
 
         public static void EditorLogWarning(string _message) => EditorLog(_message, Color.yellow);
+        public static void EditorLogWarning(object _message) => EditorLog(_message.ToString(), Color.yellow);
 
         public static void EditorLog(string _message) => EditorLog(_message, Color.white);
+        public static void EditorLog(object _message) => EditorLog(_message.ToString(), Color.white);
 
         public static void EditorLog(string _message, Color _messageColor)
         {
@@ -374,14 +369,44 @@ namespace Erik.Systems.Console
         }
 		#endregion
 
-        #endregion
+		#region
 
-        #region Command processing
+		/*public static void RegisterAttributedMethods()
+		{
+            TypeCache.MethodCollection methods = TypeCache.GetMethodsWithAttribute<Log>();
 
-        private void ProcessConsoleEntry(InputAction.CallbackContext context)
+			foreach (var method in methods)
+			{
+				Log logAtt = method.GetCustomAttribute<Log>();
+				if (logAtt != null)
+				{
+                    AddCommand(ConsoleCommand.CreateCommand(logAtt.name, logAtt.description, ConsoleCommandType.Basics, Delegate.CreateDelegate(method.GetType(), method)));
+				}
+			}
+            methods = TypeCache.GetMethodsWithAttribute<EditorLog>();
+
+			foreach (var method in methods)
+			{
+				EditorLog logAtt = method.GetCustomAttribute<EditorLog>();
+				if (logAtt != null)
+				{
+                    AddCommand(ConsoleCommand.CreateCommand(logAtt.name, logAtt.description, ConsoleCommandType.Basics, Delegate.CreateDelegate(method.GetType(), method)));
+				}
+			}
+		}*/
+
+		#endregion
+
+		#endregion
+
+		#region Command processing
+
+		private void ProcessConsoleEntry(InputAction.CallbackContext context)
         {
             if (shownEntry > 0) // If something was chosen from the previous dropdown
+            {
                 ChooseThing(new InputAction.CallbackContext());
+            }
             if (shownEntry < 0)
             {
                 ChooseOtherThing(new InputAction.CallbackContext());
@@ -389,16 +414,12 @@ namespace Erik.Systems.Console
             }
 
 
-            if (string.IsNullOrEmpty(field) == true)
+            if (string.IsNullOrEmpty(field))
                 return;
 
             pastEntries.Insert(0, field);
-            if (pastEntries.Count > 5)
+            if (pastEntries.Count > 10)
                 pastEntries.RemoveAt(pastEntries.Count - 1);
-
-
-            if (field.Contains('|'))
-                field = field[..field.IndexOf('|')].TrimEnd(); // Dont ask
 
             if (field.StartsWith('/'))
                 ProcessCommand(field[1..].Split(' ', StringSplitOptions.RemoveEmptyEntries));
@@ -456,21 +477,15 @@ namespace Erik.Systems.Console
         private bool ConvertText(string[] parts, ConsoleCommand command, out List<object> converted)
         {
             converted = new List<object>();
-            // make sure to check and add the targets (chosen and player)
-            if ( command._usePlayerRef == true )
-            {
-                Log("Used the player ref");
-                converted.Add(GetPlayerReference());
-            }
-            if (command._useTarget == true )
-            {
-                Log("Used the target ref");
-                converted.Add(clickedObject);
-            }
 			// TODO: Add a function to click and highlight anything in the scene and use as a reference
 			// DONE!
 			// TODO: Make it more obvious what you have selected
 			Type[] varTypes = command._call.GetType().GenericTypeArguments;
+            // make sure to check and add the target
+            if (varTypes.Length > 0 && varTypes[0] == typeof(GameObject))
+            {
+                converted.Add(clickedObject);
+            }
 			for ( int i = 0; i < parts.Length; i++)
             {
                 try
@@ -504,13 +519,13 @@ namespace Erik.Systems.Console
 			string ID = command._commandID;
             Type[] varTypes = command._call.GetType().GenericTypeArguments;
 			int varCount = varTypes.Length;
-            string fullID =  $"{ ID }|{varCount}";
+            string fullID =  $"{ ID }|{ varCount }";
             // Contains the actuall ID, also using the var count, so you can have multiple types using the same start word
             // as of right now, i dont know a good way of making more variants viable, so for example if you want 2 commands with both the same start word and same count of variables.
-            // could make it so that it checks the variables, however this could be problematic as there are alot of different variables that could be read the same way
+            // could make it so that it checks the variables, however this could be problematic as there are a lot of different variables that could be read the same way
             // i could make it so that it only accepts certain types, so you can only use float, and not ulong, short, or int
             // TODO: look into this later IF NECCESSARY!
-            Debug.Log("Added " + fullID);
+            // Debug.Log("Added " + fullID);
             if (ConComDict.ContainsKey(fullID)) 
             {
                 Debug.LogWarning("The Command you tried to add, allready exists" );
@@ -522,27 +537,31 @@ namespace Erik.Systems.Console
 
             string commandType = command._commandType.ToString();
 
-            string finalDescription = $"Command: {ID}, ";
+            string finalDescription = $"Command: { ID }, ";
             string lookupText = ID + ' ';
-            for (int i = 0; i < varCount; i++)
+            int start = 0;
+            if (varTypes.Length > 0 && varTypes[0] == typeof(GameObject))
+                start++;
+			for (int i = start; i < varCount; i++)
             {
-                if (i == 0)
+                if (i == start)
                 {
                     finalDescription += '[';
                     lookupText += '[';
                 }
-                finalDescription += varTypes[i].Name;
-                lookupText += varTypes[i].Name;
+                finalDescription += varTypes[ i ].Name;
+                lookupText += varTypes[ i ].Name;
                 if (i + 1 == varCount)
                 {
                     finalDescription += ']';
                     lookupText += ']';
+                    break;
                 }
                 finalDescription += ", ";
                 lookupText += " ";
             }
             instance.lookupTable.Insert(lookupText);
-            Debug.Log(lookupText);
+            //Debug.Log(lookupText);
             finalDescription += command._commandDescription;
 
             // Adds the description and in what category it belonges to
@@ -705,8 +724,6 @@ namespace Erik.Systems.Console
             _commandDescription = commandDescription;
             _commandType = commandType;
             _commandID = commandID;
-            _usePlayerRef = false;
-            _useTarget = false;
             _call = call;
         }
         public static ConsoleCommand CreateCommand(string commandID, string commandDescription, ConsoleCommandType commandType, Action call)
@@ -715,16 +732,35 @@ namespace Erik.Systems.Console
             => new ConsoleCommand(commandID, commandDescription, commandType, call);
         public static ConsoleCommand CreateCommand<T1, T2>(string commandID, string commandDescription, ConsoleCommandType commandType, Action<T1, T2> call)
             => new ConsoleCommand(commandID, commandDescription, commandType, call);
-
-        /// <summary>
-        /// If this is checked, then the first variable is a reference to the player
-        /// </summary>
-        public readonly bool _usePlayerRef;
-        /// <summary>
-        /// If this is checked, then the first variable is a reference to the selected target, 
-        /// If the "<seealso cref="_usePlayerRef"/>" is also checked, it becomes the second variable
-        /// </summary>
-        public readonly bool _useTarget;
+        public static ConsoleCommand CreateCommand(string commandID, string commandDescription, ConsoleCommandType commandType, Delegate call)
+            => new ConsoleCommand(commandID, commandDescription, commandType, call);
         public void Execute(object[] v1) => _call.DynamicInvoke(v1);
     }
 }
+
+/*[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+public sealed class Log : Attribute
+{
+    public readonly string name;
+    public readonly string description;
+
+    public Log(string name, string description)
+    {
+		this.name = name;   
+        this.description = description;
+	}
+}
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+public sealed class EditorLog : PropertyAttribute
+{
+	public readonly string name;
+	public readonly string description;
+
+	public EditorLog(string name, string description)
+	{
+		this.name = name;
+		this.description = description;
+	}
+}
+*/
