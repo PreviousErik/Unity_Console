@@ -2,6 +2,13 @@
 
 Created by Erik Torenstam ©2024-2025
 
+> [!IMPORTANT]
+> This is still early, some things will not be writen here, and a lot of re-writing will happen here.
+>
+> To get the gist of this, read the "How to use" section of the ReadMe
+>
+> This is the first time i've done anything like this, if you have feedback on either the console or this readme file, don't hesitate to tell me!
+
 This console is for free use.
 You are allowed, and in-fact have, to create your own extension class of the HZR_Console, to add your own functionality, or overwrite what already exist.
 
@@ -48,7 +55,21 @@ You can keep track of the commands from where they were added, so that you can r
 
 ### Choosing stuff
 
+### Chat
+
+This console can be used as a chat over servers, simply override the "SendMessageToPlayers(string _message)" function, and send the string to the server-manager.
+
+This function has safeguards in place to remove bloat, and will make it harder to send an excessive amount of text.
+
+> [!WARNING]
+> This is not a guarantee that this will work for everything, you have to make sure that this is safe for your game.
+
+> [!NOTE]
+> There is no profanity filter.
+
 ### Descriptions
+
+Each command entry can be given a description, this will give the person calling this an overview of what the command is supposed to do, this is still in the early stages, and will most likely be changed in the future.
 
 ### Command-types
 
@@ -57,6 +78,9 @@ You can keep track of the commands from where they were added, so that you can r
 This console has a logging function, where you can give information duing gameplay, there are 2 variants of this, that should be used together for the best results
 - Default logging
 	This will give the player information about what is going on, such as if someone joined your game, if they have gotten an achievement and anything else you can imagine.
+
+<img width="388" height="74" alt="image" src="https://github.com/user-attachments/assets/fb4fbaa1-7746-4083-918f-84ed48dd9c19" />
+
 
 ## How to use
 
@@ -88,8 +112,11 @@ AddCommands(command);
 > Make sure to add the command, as it is not done automatically
 
 > [!IMPORTANT]
-> You do not need to add the console to anything, it will instantiate one when you start the game.
-> It will not be destroyed when you load a new scene
+> DO NOT ADD THIS CONSOLE TO A GAMEOBJECT
+>
+> This will create and manage everyting on its own.
+>
+> Don't worry, it can take care of it self! :D
 
 ## EditorOnly
 
@@ -123,18 +150,6 @@ This will only require 2 variabels when called in the console, but will still ad
 ### How to use the reference
 
 To have a command that will use the clicked on reference, simply add a GameObject as the first variable in your function, and it will be exchanged for a reference to the gameobject that was clicked on last.
-
-## Chat
-
-This console can be used as a chat over servers, simply override the "SendMessageToPlayers(string _message)" function, and send the string to the server-manager.
-
-This function has safeguards in place to remove bloat, and will make it harder to send an excessive amount of text.
-
-> [!WARNING]
-> This is not a guarantee that this will work for everything, you have to make sure that this is safe for your game.
-
-> [!NOTE]
-> There is no profanity filter.
 
 ## Future things and unfinished areas
 
