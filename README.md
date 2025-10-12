@@ -9,6 +9,54 @@ The main focus of this is simple use, but extensive coverage with high malleabil
 
 This will help you create a workflow that is going to make testing incredibly fast and easy.
 
+## Features
+
+### Commands
+
+The main feature of this is the commands, where you can call functions through simply typing in the console, some examples of what can be added:
+- Change settings without having to create the UI for it
+- Adding cheats :D
+- Moving players / objects
+- Triggering events
+- Giving items and resources
+- Spawning characters
+- Testing damage- and death-calls
+- And so much more
+
+### Search field
+
+When you search for the commands that you have added, it will show you all the potentials along the way, and each variable that is required to complete the call.
+
+<img width="133" height="101" alt="image" src="https://github.com/user-attachments/assets/77931f9f-2abc-4d65-955f-07133609ca01" />
+
+As you type more, this will be narrowed down to the relevant calls that are available.
+
+<img width="156" height="100" alt="image" src="https://github.com/user-attachments/assets/0322499e-68cf-401f-817c-e65d4e266eb2" />
+
+Note that this also shows each variable that is required to call the command, as if you don't add them, the command will not be called.
+
+You do not have to worry about the amount of commands added, as the search can handle over 1000 entries with ease.
+
+> [!IMPORTANT]
+> Each entry have to be unique, either with the name or with how many entries that it has. 
+> If you have overrides for calls that have the same name, they have to have a unique number of variables.
+> Adding different variables or changing the order of the vairables will not work, as it only has to do with the number of them.
+
+These are always available, make sure that the calles have references to everything.
+
+You can keep track of the commands from where they were added, so that you can remove them if the required items are unavailable.
+
+### Choosing stuff
+
+### Descriptions
+
+### Command-types
+
+### Logging
+
+This console has a logging function, where you can give information duing gameplay, there are 2 variants of this, that should be used together for the best results
+- Default logging
+	This will give the player information about what is going on, such as if someone joined your game, if they have gotten an achievement and anything else you can imagine.
 
 ## How to use
 
@@ -87,6 +135,8 @@ This function has safeguards in place to remove bloat, and will make it harder t
 
 > [!NOTE]
 > There is no profanity filter.
+
+## Future things and unfinished areas
 
 ## Can not find a good name for this section, so here you go
 
