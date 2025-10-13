@@ -2,12 +2,84 @@
 
 Created by Erik Torenstam ©2024-2025
 
+> [!IMPORTANT]
+> This is still early, some things will not be writen here, and a lot of re-writing will happen here.
+>
+> To get the gist of this, read the "How to use" section of the ReadMe
+>
+> This is the first time i've done anything like this, if you have feedback on either the console or this readme file, don't hesitate to tell me!
+
 This console is for free use.
 You are allowed, and in-fact have, to create your own extension class of the HZR_Console, to add your own functionality, or overwrite what already exist.
 
 The main focus of this is simple use, but extensive coverage with high malleability.
 
 This will help you create a workflow that is going to make testing incredibly fast and easy.
+
+## Features
+
+### Commands
+
+The main feature of this is the commands, where you can call functions through simply typing in the console, some examples of what can be added:
+- Change settings without having to create the UI for it
+- Adding cheats :D
+- Moving players / objects
+- Triggering events
+- Giving items and resources
+- Spawning characters
+- Testing damage- and death-calls
+- And so much more
+
+### Search field
+
+When you search for the commands that you have added, it will show you all the potentials along the way, and each variable that is required to complete the call.
+
+<img width="133" height="101" alt="image" src="https://github.com/user-attachments/assets/77931f9f-2abc-4d65-955f-07133609ca01" />
+
+As you type more, this will be narrowed down to the relevant calls that are available.
+
+<img width="156" height="100" alt="image" src="https://github.com/user-attachments/assets/0322499e-68cf-401f-817c-e65d4e266eb2" />
+
+Note that this also shows each variable that is required to call the command, as if you don't add them, the command will not be called.
+
+You do not have to worry about the amount of commands added, as the search can handle over 1000 entries with ease.
+
+> [!IMPORTANT]
+> Each entry have to be unique, either with the name or with how many entries that it has. 
+> If you have overrides for calls that have the same name, they have to have a unique number of variables.
+> Adding different variables or changing the order of the vairables will not work, as it only has to do with the number of them.
+
+These are always available, make sure that the calles have references to everything.
+
+You can keep track of the commands from where they were added, so that you can remove them if the required items are unavailable.
+
+### Choosing stuff
+
+### Chat
+
+This console can be used as a chat over servers, simply override the "SendMessageToPlayers(string _message)" function, and send the string to the server-manager.
+
+This function has safeguards in place to remove bloat, and will make it harder to send an excessive amount of text.
+
+> [!WARNING]
+> This is not a guarantee that this will work for everything, you have to make sure that this is safe for your game.
+
+> [!NOTE]
+> There is no profanity filter.
+
+### Descriptions
+
+Each command entry can be given a description, this will give the person calling this an overview of what the command is supposed to do, this is still in the early stages, and will most likely be changed in the future.
+
+### Command-types
+
+### Logging
+
+This console has a logging function, where you can give information duing gameplay, there are 2 variants of this, that should be used together for the best results
+- Default logging
+	This will give the player information about what is going on, such as if someone joined your game, if they have gotten an achievement and anything else you can imagine.
+
+<img width="388" height="74" alt="image" src="https://github.com/user-attachments/assets/fb4fbaa1-7746-4083-918f-84ed48dd9c19" />
 
 
 ## How to use
@@ -40,8 +112,11 @@ AddCommands(command);
 > Make sure to add the command, as it is not done automatically
 
 > [!IMPORTANT]
-> You do not need to add the console to anything, it will instantiate one when you start the game.
-> It will not be destroyed when you load a new scene
+> DO NOT ADD THIS CONSOLE TO A GAMEOBJECT
+>
+> This will create and manage everyting on its own.
+>
+> Don't worry, it can take care of it self! :D
 
 ## EditorOnly
 
@@ -76,17 +151,7 @@ This will only require 2 variabels when called in the console, but will still ad
 
 To have a command that will use the clicked on reference, simply add a GameObject as the first variable in your function, and it will be exchanged for a reference to the gameobject that was clicked on last.
 
-## Chat
-
-This console can be used as a chat over servers, simply override the "SendMessageToPlayers(string _message)" function, and send the string to the server-manager.
-
-This function has safeguards in place to remove bloat, and will make it harder to send an excessive amount of text.
-
-> [!WARNING]
-> This is not a guarantee that this will work for everything, you have to make sure that this is safe for your game.
-
-> [!NOTE]
-> There is no profanity filter.
+## Future things and unfinished areas
 
 ## Can not find a good name for this section, so here you go
 
