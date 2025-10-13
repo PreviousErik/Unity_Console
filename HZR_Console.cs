@@ -1,4 +1,4 @@
-﻿// Copyright Erik Torenstam 2022-2025+
+﻿// Copyright Erik Torenstam 2024-2025
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -32,8 +32,8 @@ namespace Erik.Systems.Console
             }
         }
 
-        public static Dictionary<string, ConsoleCommand> ConComDict;
-        public static Dictionary<string, List<string>> DescriptionDict;
+        private static Dictionary<string, ConsoleCommand> ConComDict;
+        private static Dictionary<string, List<string>> DescriptionDict;
 
         ConsoleControlls inputActions;
 		private void OnDestroy()
@@ -51,14 +51,14 @@ namespace Erik.Systems.Console
         /// </summary>
         protected static List<ConsoleEntry> consoleLog;
 
-        int shownEntry = 0;
-        string field;
-        bool justMarried;
-        bool updateSearchResult;
-        List<string> seartchResults = new List<string>();
-        Trie lookupTable = new Trie();
+        private int shownEntry = 0;
+        private string field;
+        private bool justMarried;
+        private bool updateSearchResult;
+        private List<string> seartchResults = new List<string>();
+        private Trie lookupTable = new Trie();
 
-        GameObject clickedObject;
+        private GameObject clickedObject;
 
         #region Subscription
 
@@ -102,7 +102,6 @@ namespace Erik.Systems.Console
 			logDeveloperCommands = Application.isEditor || Debug.isDebugBuild;
             //RegisterAttributedMethods();
 		}
-
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         private static void CreateConsoleInstance()
@@ -574,6 +573,7 @@ namespace Erik.Systems.Console
         #endregion
 
     }
+    
     public enum ConsoleCommandType
     {
         Basics,
@@ -606,11 +606,27 @@ namespace Erik.Systems.Console
             Entries = new EntrySegment[1] { new EntrySegment(textColor, text )};
             this.onlyDev = onlyDev; 
 		}
-		public class EntrySegment
+		
+        public class EntrySegment
         {
             public readonly Color textColor = Color.white;
             public readonly string text;
             public readonly Texture2D img;
+
+			public static implicit operator EntrySegment((Color textColor, string text) args)
+			{
+				return new EntrySegment(args.textColor, args.text);
+			}
+
+			public static implicit operator EntrySegment((Color textColor, object thing) args)
+			{
+				return new EntrySegment(args.textColor, args.thing);
+			}
+
+			public static implicit operator EntrySegment(Texture2D img)
+			{
+				return new EntrySegment(img);
+			}
 
 			public EntrySegment(Color textColor, string text)
 			{
