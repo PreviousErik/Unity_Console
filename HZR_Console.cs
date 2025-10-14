@@ -280,7 +280,7 @@ namespace Erik.Systems.Console
                 TurnOffConsole();
         }
 
-        private void TurnOnConsole()
+        protected virtual void TurnOnConsole()
         {
             Debug.Log($"The console has been enabled!");
             inputActions.Console.ChoosePreviousInput.Enable();
@@ -288,18 +288,18 @@ namespace Erik.Systems.Console
             shownEntry = 0;
             field = string.Empty;
 
-            Cursor.lockState = CursorLockMode.Confined;
-            Cursor.visible = true;
+            //Cursor.lockState = CursorLockMode.Confined;
+            //Cursor.visible = true;
         }
 
-        private void TurnOffConsole()
+		protected virtual void TurnOffConsole()
         {
             Debug.Log($"The console has been disabled!");
             inputActions.Console.ChoosePreviousInput.Disable();
             inputActions.Console.Enter.Disable();
 
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            //Cursor.lockState = CursorLockMode.Locked;
+            //Cursor.visible = false;
         }
 
         private void DirectionThings(InputAction.CallbackContext _context)
