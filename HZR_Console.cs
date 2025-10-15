@@ -273,34 +273,27 @@ namespace Erik.Systems.Console
 
         private void ToggleConsole()
         {
-            ConsoleActive = !ConsoleActive;
-            if (ConsoleActive == true)
+            if (ConsoleActive == false)
                 TurnOnConsole();
             else
                 TurnOffConsole();
-        }
+		}
 
         protected virtual void TurnOnConsole()
         {
-            //Debug.Log($"The console has been enabled!");
             inputActions.Console.ChoosePreviousInput.Enable();
             inputActions.Console.Enter.Enable();
             shownEntry = 0;
             field = string.Empty;
+            ConsoleActive = true;
 
-            ConsoleToggleUpdate?.Invoke(true);
-            //Cursor.lockState = CursorLockMode.Confined;
-            //Cursor.visible = true;
-        }
+		}
 
 		protected virtual void TurnOffConsole()
         {
-            //Debug.Log($"The console has been disabled!");
             inputActions.Console.ChoosePreviousInput.Disable();
             inputActions.Console.Enter.Disable();
-            ConsoleToggleUpdate?.Invoke(false);
-			//Cursor.lockState = CursorLockMode.Locked;
-			//Cursor.visible = false;
+            ConsoleActive = false;
 		}
 
         private void DirectionThings(InputAction.CallbackContext _context)
