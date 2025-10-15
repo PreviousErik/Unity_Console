@@ -13,7 +13,7 @@ namespace Erik.Systems.Console
     */
     public abstract class HZR_Console : MonoBehaviour
     {
-        private static HZR_Console instance;
+        protected static HZR_Console instance;
 
         private bool logDeveloperCommands;
 
@@ -282,25 +282,26 @@ namespace Erik.Systems.Console
 
         protected virtual void TurnOnConsole()
         {
-            Debug.Log($"The console has been enabled!");
+            //Debug.Log($"The console has been enabled!");
             inputActions.Console.ChoosePreviousInput.Enable();
             inputActions.Console.Enter.Enable();
             shownEntry = 0;
             field = string.Empty;
 
+            ConsoleToggleUpdate?.Invoke(true);
             //Cursor.lockState = CursorLockMode.Confined;
             //Cursor.visible = true;
         }
 
 		protected virtual void TurnOffConsole()
         {
-            Debug.Log($"The console has been disabled!");
+            //Debug.Log($"The console has been disabled!");
             inputActions.Console.ChoosePreviousInput.Disable();
             inputActions.Console.Enter.Disable();
-
-            //Cursor.lockState = CursorLockMode.Locked;
-            //Cursor.visible = false;
-        }
+            ConsoleToggleUpdate?.Invoke(false);
+			//Cursor.lockState = CursorLockMode.Locked;
+			//Cursor.visible = false;
+		}
 
         private void DirectionThings(InputAction.CallbackContext _context)
         {
