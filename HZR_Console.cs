@@ -35,6 +35,8 @@ namespace Erik.Systems.Console
         private static Dictionary<string, ConsoleCommand> ConComDict;
         private static Dictionary<string, List<string>> DescriptionDict;
 
+        protected static Dictionary<string, Player_Behaviour> players;
+
         ConsoleControlls inputActions;
 		private void OnDestroy()
 		{
@@ -95,6 +97,7 @@ namespace Erik.Systems.Console
 
             ConComDict = new Dictionary<string, ConsoleCommand>();
             DescriptionDict = new Dictionary<string, List<string>>();
+            players = new Dictionary<string, Player_Behaviour>();
 
             consoleLog = new List<ConsoleEntry>();
             pastEntries = new List<string>();
@@ -307,19 +310,15 @@ namespace Erik.Systems.Console
 
 		#region Log
 
-		public static void LogError(string _message) => Log(_message, Color.red);
 		public static void LogError(object _message) => Log(_message.ToString(), Color.red);
 
-        public static void LogWarning(string _message) => Log(_message, Color.yellow);
         public static void LogWarning(object _message) => Log(_message.ToString(), Color.yellow);
 
-        public static void Log(string _message) => Log(_message, Color.white);
         public static void Log(object _message) => Log(_message.ToString(), Color.white);
-        public static void Log(object _message, Color _messageColor) => Log(_message.ToString(), _messageColor);
 
-        public static void Log(string _message, Color _messageColor)
+		private static void Log(object _message, Color _messageColor)
         {
-            consoleLog.Insert(0, new ConsoleEntry(false, new ConsoleEntry.EntrySegment(_messageColor, _message)));
+            consoleLog.Insert(0, new ConsoleEntry(false, new ConsoleEntry.EntrySegment(_messageColor, _message.ToString())));
             if (consoleLog.Count > 20)
                 consoleLog.RemoveAt(consoleLog.Count - 1);
         }
@@ -564,9 +563,29 @@ namespace Erik.Systems.Console
                 DescriptionDict[ commandType ].Add(finalDescription);
         }
 
-        #endregion
+		#endregion
 
-    }
+		internal static void AddPlayerName(Player_Behaviour newPlayer)
+		{
+            if (players.ContainsKey(newPlayer.name) == true)
+            {
+                NSCF_Console.LogError("That name allready exists: " + newPlayer.name);
+                return;
+            }
+            players.Add(newPlayer.name, newPlayer);
+		}
+
+        internal static void RemovePlayerName(Player_Behaviour newPlayer)
+        {
+
+			if (players.ContainsKey(newPlayer.name) == false)
+			{
+				NSCF_Console.LogError("That name does not exist: " + newPlayer.name);
+				return;
+			}
+			players.Remove(newPlayer.name);
+		}
+	}
     
     public enum ConsoleCommandType
     {
