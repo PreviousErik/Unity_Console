@@ -109,6 +109,10 @@ namespace Erik.Systems.Console
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         private static void CreateConsoleInstance()
         {
+#if UNITY_EDITOR
+            if (Application.isPlaying == false)
+                return;
+#endif
             List<Type> children = GTHF.GetChildClasses(typeof(HZR_Console));
 
             if (children.Count == 0)
@@ -123,6 +127,7 @@ namespace Erik.Systems.Console
                 return;
             }
             GameObject obj = new GameObject(children[0].Name);
+            obj.hideFlags = HideFlags.HideAndDontSave;
             DontDestroyOnLoad(obj);
             instance = (HZR_Console)obj.AddComponent(children[0]);
             instance.Init();
