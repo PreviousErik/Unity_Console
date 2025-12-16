@@ -126,6 +126,10 @@ namespace Erik.Systems.Console
                 Debug.LogWarning("There are more than one class that inherits from the HZR_Console, only one should exist");
                 return;
             }
+            if (instance)
+            {
+                Destroy(instance);
+            }
             GameObject obj = new GameObject(children[0].Name);
             obj.hideFlags = HideFlags.HideAndDontSave;
             DontDestroyOnLoad(obj);
