@@ -277,7 +277,8 @@ namespace Erik.Systems.Console
             // Removes the added context before sending it to the console
 			if (field.Contains('['))
 				field = field[..field.IndexOf('[')];
-            shownEntry = 0;
+			field = '/' + field;
+			shownEntry = 0;
             justMarried = true;
         }
         
@@ -435,7 +436,7 @@ namespace Erik.Systems.Console
         /// </summary>
         /// <param name="_message"></param>
         protected virtual void UserMessage(string _message) { }
-
+        public static void ProcessDirectCommand(string command) => instance.ProcessCommand(command.Split(' ', StringSplitOptions.RemoveEmptyEntries));
         private void ProcessCommand(string[] parts)
         {
 

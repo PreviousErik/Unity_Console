@@ -9,9 +9,9 @@ public class ConsoleSettingsProvider : SettingsProvider
     {
     }
 
-    bool folded;
-    float space;
-    int Indentation = 250;
+    //bool folded;
+    //float space;
+    //int Indentation = 250;
 
     public override void OnGUI(string searchContext)
     {
