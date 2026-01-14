@@ -106,7 +106,7 @@ namespace Erik.Systems.Console
             //RegisterAttributedMethods();
 		}
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void CreateConsoleInstance()
         {
 #if UNITY_EDITOR
