@@ -16,6 +16,24 @@ public static partial class GTHF
         a = !a;
         return a;
     }
+    /// <summary>
+    /// Quick handle to convert a vec3 into a vec2 using x and y
+    /// </summary>
+    /// <param name="a"></param>
+    /// <returns></returns>
+    public static Vector2 XY(this Vector3 a)
+    {
+        return new Vector2(a.x, a.y);
+    }
+    /// <summary>
+    /// Quick handle to convert a vec3 into a vec2 using x and z
+    /// </summary>
+    /// <param name="a"></param>
+    /// <returns></returns>
+    public static Vector2 XZ(this Vector3 a)
+    {
+        return new Vector2(a.x, a.z);
+    }
 
     public static Vector3 RotateVectorAlongUp(this Vector3 origin, float angle)
     {
