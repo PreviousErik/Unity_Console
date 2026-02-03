@@ -113,7 +113,7 @@ namespace Erik.Systems.Console
             if (Application.isPlaying == false)
                 return;
 #endif
-            List<Type> children = GTHF.GetChildClasses(typeof(HZR_Console));
+            List<Type> children = typeof(HZR_Console).GetChildClasses();
 
             if (children.Count == 0)
             {
@@ -630,42 +630,40 @@ namespace Erik.Systems.Console
             this.onlyDev = onlyDev; 
 		}
 		
-        public class EntrySegment
+        public readonly struct EntrySegment
         {
-            public readonly Color textColor = Color.white;
+            public readonly Color textColor;
             public readonly string text;
             public readonly Texture2D img;
 
-			public static implicit operator EntrySegment((Color textColor, string text) args)
-			{
-				return new EntrySegment(args.textColor, args.text);
-			}
+			public static implicit operator EntrySegment((Color textColor, string text) args) 
+                => new (args.textColor, args.text);
 
 			public static implicit operator EntrySegment((Color textColor, object thing) args)
-			{
-				return new EntrySegment(args.textColor, args.thing);
-			}
+			    => new (args.textColor, args.thing);
 
 			public static implicit operator EntrySegment(Texture2D img)
-			{
-				return new EntrySegment(img);
-			}
+			    => new (img);
 
 			public EntrySegment(Color textColor, string text)
 			{
 				this.textColor = textColor;
 				this.text = text;
+				this.img = null;
 			}
 
 			public EntrySegment(Texture2D img)
 			{
 				this.img = img;
+				this.textColor = Color.white;
+				this.text = string.Empty;
 			}
 
 			public EntrySegment(Color textColor, object thing)
 			{
 				this.textColor = textColor;
 				this.text = thing.ToString();
+				this.img = null;
 			}
 		}
     }

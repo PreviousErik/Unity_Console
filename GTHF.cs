@@ -35,6 +35,28 @@ public static partial class GTHF
         return new Vector2(a.x, a.z);
     }
 
+    /// <summary>
+    /// Compares the float with the distance of the vector in an optimized way
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="d"></param>
+    /// <returns></returns>
+    public static bool IsLonger(this Vector2 a, float d)
+    {
+        return a.sqrMagnitude > d * d;
+    }
+
+    /// <summary>
+    /// Compares the float with the distance of the vector in an optimized way
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="d"></param>
+    /// <returns></returns>
+    public static bool IsLonger(this Vector3 a, float d)
+    {
+        return a.sqrMagnitude > d * d;
+    }
+
     public static Vector3 RotateVectorAlongUp(this Vector3 origin, float angle)
     {
        return Quaternion.AngleAxis(angle, Vector3.up) * origin;
@@ -44,7 +66,7 @@ public static partial class GTHF
 	/// </summary>
 	/// <param name="TYPE"></param>
 	/// <returns></returns>
-	public static List<Type> GetChildClasses(Type TYPE)
+	public static List<Type> GetChildClasses(this Type TYPE)
 	{
 		return AppDomain.CurrentDomain.GetAssemblies()
 			.SelectMany(assembly =>
@@ -80,7 +102,7 @@ public static partial class GTHF
     /// </summary>
     /// <param name="TYPE"></param>
     /// <returns></returns>
-    public static List<Type> GetTypesImplementingInterface(Type TYPE)
+    public static List<Type> GetTypesImplementingInterface(this Type TYPE)
     {
         return AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(assembly =>
