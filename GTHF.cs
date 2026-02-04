@@ -45,6 +45,29 @@ public static partial class GTHF
     {
         return a.sqrMagnitude > d * d;
     }
+    /// <summary>
+    /// Multiplies each value seperatly with eachoter, so x*x and y*y
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="d"></param>
+    /// <returns></returns>
+    public static void Multiply(ref this Vector2 a, Vector2 b)
+    {
+        a.x *= b.x;
+        a.y *= b.y;
+    }
+    /// <summary>
+    /// Multiplies each value seperatly with eachoter, so x*x, y*y, and z*z
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="d"></param>
+    /// <returns></returns>
+    public static void Multiply(ref this Vector3 a, Vector3 b)
+    {
+        a.x *= b.x;
+        a.y *= b.y;
+        a.z *= b.z;
+    }
 
     /// <summary>
     /// Compares the float with the distance of the vector in an optimized way
