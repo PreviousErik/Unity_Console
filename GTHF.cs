@@ -146,5 +146,46 @@ public static partial class GTHF
     {
         return new Vector3(origin.x, origin.y, origin.z);
     }
+	public static T AddComponent<T>(this Projectile go, T toCopy) where T : Component
+	{
+		T newComponent = go.gameObject.AddComponent<T>();
+
+		FieldInfo[] fields = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+		foreach (FieldInfo field in fields)
+		{
+			field.SetValue(newComponent, field.GetValue(toCopy));
+		}
+		return newComponent;
+	}
+	public static List<T> MakeCopy<T>(this List<T> sourceList)
+	{
+		if (sourceList == null) return null;
+		List<T> newList = new List<T>();
+		foreach (T sourceItem in sourceList)
+		{
+			if (sourceItem == null)
+			{
+				newList.Add(default);
+				continue;
+			}
+			Type actualType = sourceItem.GetType();
+			T newItem = (T)Activator.CreateInstance(actualType);
+			Type typeToReflect = actualType;
+			while (typeToReflect != null)
+			{
+				FieldInfo[] fields = typeToReflect.GetFields(BindingFlags.Public |
+															BindingFlags.NonPublic |
+															BindingFlags.Instance |
+															BindingFlags.DeclaredOnly);
+				foreach (FieldInfo field in fields)
+				{
+					field.SetValue(newItem, field.GetValue(sourceItem));
+				}
+				typeToReflect = typeToReflect.BaseType;
+			}
+			newList.Add(newItem);
+		}
+		return newList;
+	}
 }
 
