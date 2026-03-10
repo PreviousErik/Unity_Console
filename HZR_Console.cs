@@ -356,6 +356,11 @@ namespace Erik.Systems.Console
 
         public static void EditorLog(string _message, Color _messageColor)
         {
+#if UNITY_EDITOR
+            if (Application.isPlaying == false)
+                return;
+#endif
+
             consoleLog.Insert(0, new ConsoleEntry(false, new ConsoleEntry.EntrySegment(Color.green, "-_[EDITOR]_- "), new ConsoleEntry.EntrySegment(_messageColor, _message)));
             if (consoleLog.Count > 20)
                 consoleLog.RemoveAt(consoleLog.Count - 1);

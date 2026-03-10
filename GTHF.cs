@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEditor;
 using UnityEngine;
 
 public static partial class GTHF
@@ -186,6 +187,24 @@ public static partial class GTHF
 			newList.Add(newItem);
 		}
 		return newList;
+	}
+	public static void EnsureAssetPathExists(string fullPath)
+	{
+		// Path should be relative to the Project folder, e.g., "Assets/MyFolder/SubFolder"
+		string[] folders = fullPath.Split('/');
+		string currentPath = folders[0];
+
+		for (int i = 1; i < folders.Length; i++)
+		{
+			string folderName = folders[i];
+			string nextPath = $"{currentPath}/{folderName}";
+
+			if (!AssetDatabase.IsValidFolder(nextPath))
+			{
+				AssetDatabase.CreateFolder(currentPath, folderName);
+			}
+			currentPath = nextPath;
+		}
 	}
 }
 
