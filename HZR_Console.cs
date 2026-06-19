@@ -35,8 +35,6 @@ namespace Erik.Systems.Console
         private static Dictionary<string, ConsoleCommand> ConComDict;
         private static Dictionary<string, List<string>> DescriptionDict;
 
-        protected static Dictionary<string, Player_Behaviour> players;
-
         ConsoleControlls inputActions;
 		private void OnDestroy()
 		{
@@ -97,7 +95,6 @@ namespace Erik.Systems.Console
 
             ConComDict = new Dictionary<string, ConsoleCommand>();
             DescriptionDict = new Dictionary<string, List<string>>();
-            players = new Dictionary<string, Player_Behaviour>();
 
             consoleLog = new List<ConsoleEntry>();
             pastEntries = new List<string>();
@@ -580,26 +577,6 @@ namespace Erik.Systems.Console
 
 		#endregion
 
-		internal static void AddPlayerName(Player_Behaviour newPlayer)
-		{
-            if (players.ContainsKey(newPlayer.name) == true)
-            {
-                HZR_Console.LogError("That name allready exists: " + newPlayer.name);
-                return;
-            }
-            players.Add(newPlayer.name, newPlayer);
-		}
-
-        internal static void RemovePlayerName(Player_Behaviour newPlayer)
-        {
-
-			if (players.ContainsKey(newPlayer.name) == false)
-			{
-				HZR_Console.LogError("That name does not exist: " + newPlayer.name);
-				return;
-			}
-			players.Remove(newPlayer.name);
-		}
 	}
     
     public enum ConsoleCommandType
@@ -609,7 +586,7 @@ namespace Erik.Systems.Console
         Player,
         Items,
         Settings,
-        C_Settings,
+        Server_Settings,
         Server
     }
 
@@ -767,6 +744,7 @@ namespace Erik.Systems.Console
             _commandType = commandType;
             _commandID = commandID;
             _call = call;
+            HZR_Console.AddCommands(this);
         }
         public static ConsoleCommand CreateCommand(string commandID, string commandDescription, ConsoleCommandType commandType, Action call)
             => new ConsoleCommand(commandID, commandDescription, commandType, call);
