@@ -584,7 +584,7 @@ namespace Erik.Systems.Console
 		{
             if (players.ContainsKey(newPlayer.name) == true)
             {
-                NSCF_Console.LogError("That name allready exists: " + newPlayer.name);
+                HZR_Console.LogError("That name allready exists: " + newPlayer.name);
                 return;
             }
             players.Add(newPlayer.name, newPlayer);
@@ -595,7 +595,7 @@ namespace Erik.Systems.Console
 
 			if (players.ContainsKey(newPlayer.name) == false)
 			{
-				NSCF_Console.LogError("That name does not exist: " + newPlayer.name);
+				HZR_Console.LogError("That name does not exist: " + newPlayer.name);
 				return;
 			}
 			players.Remove(newPlayer.name);

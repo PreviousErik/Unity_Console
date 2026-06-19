@@ -143,21 +143,7 @@ public static partial class GTHF
             .Where(type => TYPE.IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
             .ToList();
     }
-    public static Vector3 ToVector3(this Vector3Short origin)
-    {
-        return new Vector3(origin.x, origin.y, origin.z);
-    }
-	public static T AddComponent<T>(this Projectile go, T toCopy) where T : Component
-	{
-		T newComponent = go.gameObject.AddComponent<T>();
-
-		FieldInfo[] fields = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-		foreach (FieldInfo field in fields)
-		{
-			field.SetValue(newComponent, field.GetValue(toCopy));
-		}
-		return newComponent;
-	}
+	
 	public static List<T> MakeCopy<T>(this List<T> sourceList)
 	{
 		if (sourceList == null) return null;
