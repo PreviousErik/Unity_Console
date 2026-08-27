@@ -507,18 +507,16 @@ namespace Erik.Systems.Console
 
         /// <summary>
         /// This function is not to be used, as the Command is not added automatically after creation
+        ///<para>This will do nothing</para>
         /// </summary>
+        [Obsolete]
         public static void AddCommands(params ConsoleCommand[] commands)
         {
-            foreach (ConsoleCommand command in commands)
-            {
-                AddCommand(command);
-            }
         }
         /// <summary>
         /// This function is not to be used, as the Command is not added automatically after creation
         /// </summary>
-        private static void AddCommand(ConsoleCommand command)
+        internal static void AddCommand(ConsoleCommand command)
         {
 			string ID = command._commandID;
             Type[] varTypes = command._call.GetType().GenericTypeArguments;

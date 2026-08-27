@@ -174,6 +174,7 @@ public static partial class GTHF
 		}
 		return newList;
 	}
+#if UNITY_EDITOR
 	public static void EnsureAssetPathExists(string fullPath)
 	{
 		// Path should be relative to the Project folder, e.g., "Assets/MyFolder/SubFolder"
@@ -195,5 +196,6 @@ public static partial class GTHF
             currentPath = nextPath;
 		}
 	}
+#endif
 }
 
