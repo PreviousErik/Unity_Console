@@ -185,11 +185,14 @@ public static partial class GTHF
 			string folderName = folders[i];
 			string nextPath = $"{currentPath}/{folderName}";
 
-			if (!AssetDatabase.IsValidFolder(nextPath))
+#if UNITY_EDITOR
+
+            if (!AssetDatabase.IsValidFolder(nextPath))
 			{
 				AssetDatabase.CreateFolder(currentPath, folderName);
 			}
-			currentPath = nextPath;
+#endif
+            currentPath = nextPath;
 		}
 	}
 }
